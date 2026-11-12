@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import get_settings
 from app.database import ConversationStore
 from app.generation import ExtractiveGenerator, OpenAIGenerator, has_valid_citations
+from app.jobs import IngestionJobManager
 from app.models import (
     Citation,
     DeleteDocumentResponse,
@@ -21,6 +22,8 @@ from app.models import (
     UploadResponse,
     ConversationSummary,
     ConversationDetail,
+    UploadJobResponse,
+    IngestionJob,
 )
 from app.parsing import parse_document
 from app.reranking import CrossEncoderReranker
@@ -32,6 +35,7 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     app.state.store = HybridDocumentStore(settings)
     app.state.database = ConversationStore(settings.database_path)
+    app.state.jobs = IngestionJobManager(app.state.store, app.state.database)
     app.state.reranker = (
         CrossEncoderReranker(settings.reranker_model)
         if settings.reranker_enabled
@@ -42,6 +46,7 @@ async def lifespan(app: FastAPI):
     else:
         app.state.generator = ExtractiveGenerator()
     yield
+    app.state.jobs.shutdown()
 
 
 app = FastAPI(
@@ -109,6 +114,43 @@ async def upload_documents(
         chunks_added=chunks_added,
         duplicates_skipped=duplicates,
     )
+
+
+@app.post("/documents/upload/async", response_model=UploadJobResponse, status_code=202)
+async def upload_documents_async(
+    request: Request, files: list[UploadFile] = File(...)
+) -> UploadJobResponse:
+    settings = get_settings()
+    max_bytes = settings.max_upload_mb * 1024 * 1024
+    units = []
+    duplicates: list[str] = []
+    for upload in files:
+        filename = upload.filename or "unnamed"
+        content = await upload.read(max_bytes + 1)
+        await upload.close()
+        if len(content) > max_bytes:
+            raise HTTPException(status_code=413, detail=f"{filename} exceeds the {settings.max_upload_mb} MB limit")
+        content_hash = hashlib.sha256(content).hexdigest()
+        if request.app.state.store.has_document(content_hash):
+            duplicates.append(filename)
+            continue
+        try:
+            parsed = parse_document(filename, content)
+            units.extend(unit.model_copy(update={"content_hash": content_hash}) for unit in parsed)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+    if not units:
+        return UploadJobResponse(jobs=[], duplicates_skipped=duplicates)
+    job = request.app.state.jobs.submit(units, len(files))
+    return UploadJobResponse(jobs=[job], duplicates_skipped=duplicates)
+
+
+@app.get("/jobs/{job_id}", response_model=IngestionJob)
+def get_ingestion_job(job_id: str, request: Request) -> IngestionJob:
+    job = request.app.state.jobs.get(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Ingestion job not found")
+    return job
 
 
 @app.get("/documents", response_model=DocumentListResponse)

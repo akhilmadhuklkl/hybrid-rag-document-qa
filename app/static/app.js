@@ -143,13 +143,28 @@ const uploadFiles = async (files) => {
   [...files].forEach((file) => form.append("files", file));
   elements.progress.hidden = false;
   try {
-    const response = await api("/documents/upload", { method: "POST", body: form });
+    const response = await api("/documents/upload/async", { method: "POST", body: form });
     const result = await response.json();
     const duplicateText = result.duplicates_skipped.length ? ` · ${result.duplicates_skipped.length} duplicate skipped` : "";
-    showToast(`${result.chunks_added} chunks indexed${duplicateText}`);
+    if (!result.jobs.length) showToast(`No new files to index${duplicateText}`);
+    else { showToast(`Indexing started${duplicateText}`); await pollJobs(result.jobs.map((job) => job.job_id)); }
     await loadDocuments();
   } catch (error) { showToast(error.message); }
   finally { elements.progress.hidden = true; elements.fileInput.value = ""; }
+};
+
+const pollJobs = async (jobIds) => {
+  let remaining = new Set(jobIds);
+  while (remaining.size) {
+    await new Promise((resolve) => window.setTimeout(resolve, 700));
+    const statuses = await Promise.all([...remaining].map(async (id) => (await api(`/jobs/${id}`)).json()));
+    statuses.forEach((job) => { if (["completed", "failed"].includes(job.status)) remaining.delete(job.job_id); });
+    const active = statuses.find((job) => ["processing", "queued"].includes(job.status));
+    if (active) showToast(`Indexing ${active.status}…`);
+    const failed = statuses.find((job) => job.status === "failed");
+    if (failed) throw new Error(failed.error || "Document indexing failed");
+  }
+  showToast("Documents indexed successfully");
 };
 
 const addUserMessage = (text) => {

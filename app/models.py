@@ -26,6 +26,22 @@ class UploadResponse(BaseModel):
     duplicates_skipped: list[str] = Field(default_factory=list)
 
 
+class IngestionJob(BaseModel):
+    job_id: str
+    status: str
+    files_received: int
+    document_units: int
+    chunks_added: int = 0
+    error: str | None = None
+    created_at: str
+    updated_at: str
+
+
+class UploadJobResponse(BaseModel):
+    jobs: list[IngestionJob]
+    duplicates_skipped: list[str] = Field(default_factory=list)
+
+
 class DocumentSummary(BaseModel):
     document_id: str
     source: str

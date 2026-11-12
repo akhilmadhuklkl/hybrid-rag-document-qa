@@ -37,6 +37,10 @@ uploads, a streaming chat experience, evidence-scored citation cards, API health
 document deletion, and recent conversation history without requiring a separate
 frontend build step. Conversations are persisted in SQLite at `atlas.db`.
 
+Large uploads use `POST /documents/upload/async` and return a job ID immediately.
+Poll `GET /jobs/{job_id}` for `queued`, `processing`, `completed`, or `failed`
+status. The Atlas UI handles this polling automatically.
+
 ## Use the API
 
 Ingest one or more documents:

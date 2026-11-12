@@ -10,5 +10,5 @@ def test_web_app_assets_exist_and_reference_api_routes():
     assert 'id="query-form"' in html
     assert 'id="drop-zone"' in html
     assert '"/query/stream"' in javascript
-    assert '"/documents/upload"' in javascript
+    assert '"/documents/upload/async"' in javascript
     assert "deleteDocument" in javascript

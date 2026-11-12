@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from app.models import Citation, ConversationDetail, ConversationMessage, ConversationSummary
+from app.models import Citation, ConversationDetail, ConversationMessage, ConversationSummary, IngestionJob
 
 
 def now_iso() -> str:
@@ -35,6 +35,16 @@ class ConversationStore:
                 );
                 CREATE INDEX IF NOT EXISTS idx_messages_conversation
                     ON messages(conversation_id, id);
+                CREATE TABLE IF NOT EXISTS ingestion_jobs (
+                    id TEXT PRIMARY KEY,
+                    status TEXT NOT NULL,
+                    files_received INTEGER NOT NULL,
+                    document_units INTEGER NOT NULL,
+                    chunks_added INTEGER NOT NULL DEFAULT 0,
+                    error TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
                 """
             )
 
@@ -130,4 +140,36 @@ class ConversationStore:
             updated_at=conversation["updated_at"],
             message_count=conversation["message_count"],
             messages=messages,
+        )
+
+    def create_job(self, job_id: str, files_received: int, document_units: int) -> IngestionJob:
+        timestamp = now_iso()
+        with self._connect() as connection:
+            connection.execute(
+                "INSERT INTO ingestion_jobs(id, status, files_received, document_units, created_at, updated_at) VALUES (?, 'queued', ?, ?, ?, ?)",
+                (job_id, files_received, document_units, timestamp, timestamp),
+            )
+        return self.get_job(job_id)  # type: ignore[return-value]
+
+    def update_job(self, job_id: str, status: str, chunks_added: int = 0, error: str | None = None) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                "UPDATE ingestion_jobs SET status = ?, chunks_added = ?, error = ?, updated_at = ? WHERE id = ?",
+                (status, chunks_added, error, now_iso(), job_id),
+            )
+
+    def get_job(self, job_id: str) -> IngestionJob | None:
+        with self._connect() as connection:
+            row = connection.execute("SELECT * FROM ingestion_jobs WHERE id = ?", (job_id,)).fetchone()
+        if not row:
+            return None
+        return IngestionJob(
+            job_id=row["id"],
+            status=row["status"],
+            files_received=row["files_received"],
+            document_units=row["document_units"],
+            chunks_added=row["chunks_added"],
+            error=row["error"],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
         )
