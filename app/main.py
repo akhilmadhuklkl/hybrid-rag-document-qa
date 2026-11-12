@@ -269,7 +269,7 @@ def build_query_response(payload: QueryRequest, request: Request) -> QueryRespon
         if reranker
         else payload.top_k
     )
-    chunks = request.app.state.store.search(payload.question, candidate_k, owner_id=owner_id)
+    chunks = request.app.state.store.search(payload.question, candidate_k, mode=payload.mode, owner_id=owner_id)
     if reranker:
         chunks = reranker.rerank(payload.question, chunks, payload.top_k)
     chunks = [
@@ -310,7 +310,7 @@ def build_query_response(payload: QueryRequest, request: Request) -> QueryRespon
         grounded=grounded,
         generation_mode=generation_mode,
         conversation_id=conversation_id,
-        retrieval_mode="hybrid",
+        retrieval_mode=payload.mode,
         retrieved_chunks=len(chunks),
         latency_ms=round((perf_counter() - started) * 1000, 2),
     )
