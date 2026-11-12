@@ -14,6 +14,7 @@ const elements = {
   welcome: document.querySelector("#welcome-state"),
   form: document.querySelector("#query-form"),
   input: document.querySelector("#question-input"),
+  retrievalMode: document.querySelector("#retrieval-mode"),
   send: document.querySelector("#send-button"),
   toast: document.querySelector("#toast"),
   newChat: document.querySelector("#new-chat"),
@@ -269,7 +270,7 @@ const askQuestion = async (question) => {
     const response = await api("/query/stream", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, top_k: 5, conversation_id: activeConversationId }),
+      body: JSON.stringify({ question, top_k: 5, mode: elements.retrievalMode.value, conversation_id: activeConversationId }),
     });
     const reader = response.body.getReader();
     const decoder = new TextDecoder();

@@ -71,6 +71,13 @@
           <form class="composer" id="query-form">
             <textarea id="question-input" rows="1" placeholder="Ask a question across your documents…" aria-label="Question" required></textarea>
             <div class="composer-actions">
+              <label class="mode-picker">Search mode
+                <select id="retrieval-mode" aria-label="Search mode">
+                  <option value="hybrid">Hybrid</option>
+                  <option value="semantic">Semantic</option>
+                  <option value="keyword">Keyword</option>
+                </select>
+              </label>
               <span><kbd>Enter</kbd> to send · <kbd>Shift</kbd> + <kbd>Enter</kbd> for a new line</span>
               <button class="send-button" id="send-button" type="submit" aria-label="Send question">↑</button>
             </div>
