@@ -14,7 +14,7 @@ from app.auth import current_user
 from app.database import ConversationStore
 from app.generation import ExtractiveGenerator, OpenAIGenerator, has_valid_citations
 from app.jobs import IngestionJobManager
-from app.files import locate_original, save_original
+from app.files import locate_original, remove_original, save_original
 from app.observability import JsonFormatter, ObservabilityMiddleware, RequestMetrics
 from app.security import SecurityMiddleware
 from app.models import (
@@ -127,8 +127,8 @@ async def upload_documents(
             duplicates.append(filename)
             continue
         try:
-            save_original(settings.file_storage_path, owner_id, content_hash, filename, content)
             parsed = parse_document(filename, content)
+            save_original(settings.file_storage_path, owner_id, content_hash, filename, content)
             units.extend(unit.model_copy(update={"content_hash": content_hash, "owner_id": owner_id}) for unit in parsed)
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -161,8 +161,8 @@ async def upload_documents_async(
             duplicates.append(filename)
             continue
         try:
-            save_original(settings.file_storage_path, owner_id, content_hash, filename, content)
             parsed = parse_document(filename, content)
+            save_original(settings.file_storage_path, owner_id, content_hash, filename, content)
             units.extend(unit.model_copy(update={"content_hash": content_hash, "owner_id": owner_id}) for unit in parsed)
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -192,9 +192,11 @@ def list_documents(request: Request) -> DocumentListResponse:
 
 @app.delete("/documents/{document_id}", response_model=DeleteDocumentResponse)
 def delete_document(document_id: str, request: Request) -> DeleteDocumentResponse:
-    deleted = request.app.state.store.delete_document(document_id, current_user(request))
+    owner_id = current_user(request)
+    deleted = request.app.state.store.delete_document(document_id, owner_id)
     if deleted == 0:
         raise HTTPException(status_code=404, detail="Document not found")
+    remove_original(get_settings().file_storage_path, owner_id, document_id)
     return DeleteDocumentResponse(document_id=document_id, chunks_deleted=deleted)
 
 

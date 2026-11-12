@@ -16,3 +16,16 @@ def locate_original(root: Path, owner_id: str, document_id: str) -> Path | None:
         return None
     files = [path for path in directory.iterdir() if path.is_file()]
     return files[0] if files else None
+
+
+def remove_original(root: Path, owner_id: str, document_id: str) -> bool:
+    directory = root / owner_id / document_id
+    if not directory.is_dir():
+        return False
+    removed = False
+    for path in directory.iterdir():
+        if path.is_file():
+            path.unlink()
+            removed = True
+    directory.rmdir()
+    return removed
