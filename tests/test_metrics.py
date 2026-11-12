@@ -29,3 +29,11 @@ def test_summarize_calculates_recall_and_mrr():
     assert report["recall_at_k"] == 0.5
     assert report["mrr"] == 0.5
     assert report["mean_latency_ms"] == 15.0
+
+
+def test_summarize_calculates_nearest_rank_p95():
+    measurements = [
+        measure_query(f"q{index}", [], {"right.md"}, float(index))
+        for index in range(1, 21)
+    ]
+    assert summarize(measurements)["p95_latency_ms"] == 19.0

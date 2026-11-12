@@ -1,0 +1,150 @@
+{
+  "semantic": {
+    "queries": 30,
+    "recall_at_k": 1.0,
+    "mrr": 0.9666666666666667,
+    "mean_relevant_chunks": 1,
+    "mean_latency_ms": 241.52723666629754,
+    "p95_latency_ms": 259.34390001930296
+  },
+  "keyword": {
+    "queries": 30,
+    "recall_at_k": 0.9333333333333333,
+    "mrr": 0.8722222222222222,
+    "mean_relevant_chunks": 0.9333333333333333,
+    "mean_latency_ms": 1.2544433372871329,
+    "p95_latency_ms": 1.7836999613791704
+  },
+  "hybrid": {
+    "queries": 30,
+    "recall_at_k": 0.9666666666666667,
+    "mrr": 0.9,
+    "mean_relevant_chunks": 0.9666666666666667,
+    "mean_latency_ms": 228.98177666550814,
+    "p95_latency_ms": 252.68490001326427
+  },
+  "weight_tuning": {
+    "best": {
+      "semantic_weight": 0.8,
+      "keyword_weight": 0.2,
+      "queries": 30,
+      "recall_at_k": 1.0,
+      "mrr": 0.9666666666666667,
+      "mean_relevant_chunks": 1,
+      "mean_latency_ms": 208.28722000587732,
+      "p95_latency_ms": 218.83489994797856
+    },
+    "all": [
+      {
+        "semantic_weight": 0.8,
+        "keyword_weight": 0.2,
+        "queries": 30,
+        "recall_at_k": 1.0,
+        "mrr": 0.9666666666666667,
+        "mean_relevant_chunks": 1,
+        "mean_latency_ms": 208.28722000587732,
+        "p95_latency_ms": 218.83489994797856
+      },
+      {
+        "semantic_weight": 1.0,
+        "keyword_weight": 0.0,
+        "queries": 30,
+        "recall_at_k": 1.0,
+        "mrr": 0.9666666666666667,
+        "mean_relevant_chunks": 1,
+        "mean_latency_ms": 208.6384866697093,
+        "p95_latency_ms": 220.04490002291277
+      },
+      {
+        "semantic_weight": 0.9,
+        "keyword_weight": 0.1,
+        "queries": 30,
+        "recall_at_k": 1.0,
+        "mrr": 0.9666666666666667,
+        "mean_relevant_chunks": 1,
+        "mean_latency_ms": 215.83452332997695,
+        "p95_latency_ms": 231.96309997001663
+      },
+      {
+        "semantic_weight": 0.7,
+        "keyword_weight": 0.3,
+        "queries": 30,
+        "recall_at_k": 1.0,
+        "mrr": 0.9666666666666667,
+        "mean_relevant_chunks": 1,
+        "mean_latency_ms": 300.27262333314866,
+        "p95_latency_ms": 399.62579996790737
+      },
+      {
+        "semantic_weight": 0.6,
+        "keyword_weight": 0.4,
+        "queries": 30,
+        "recall_at_k": 0.9666666666666667,
+        "mrr": 0.9,
+        "mean_relevant_chunks": 0.9666666666666667,
+        "mean_latency_ms": 316.16938000855345,
+        "p95_latency_ms": 338.9759000274353
+      },
+      {
+        "semantic_weight": 0.5,
+        "keyword_weight": 0.5,
+        "queries": 30,
+        "recall_at_k": 0.9333333333333333,
+        "mrr": 0.9,
+        "mean_relevant_chunks": 0.9333333333333333,
+        "mean_latency_ms": 315.2572800036675,
+        "p95_latency_ms": 363.08440001448616
+      },
+      {
+        "semantic_weight": 0.4,
+        "keyword_weight": 0.6,
+        "queries": 30,
+        "recall_at_k": 0.9333333333333333,
+        "mrr": 0.8944444444444445,
+        "mean_relevant_chunks": 0.9333333333333333,
+        "mean_latency_ms": 331.7464000021573,
+        "p95_latency_ms": 353.8063000305556
+      },
+      {
+        "semantic_weight": 0.3,
+        "keyword_weight": 0.7,
+        "queries": 30,
+        "recall_at_k": 0.9333333333333333,
+        "mrr": 0.8777777777777778,
+        "mean_relevant_chunks": 0.9333333333333333,
+        "mean_latency_ms": 343.7697200026984,
+        "p95_latency_ms": 407.15699997963384
+      },
+      {
+        "semantic_weight": 0.0,
+        "keyword_weight": 1.0,
+        "queries": 30,
+        "recall_at_k": 0.9333333333333333,
+        "mrr": 0.8722222222222222,
+        "mean_relevant_chunks": 0.9333333333333333,
+        "mean_latency_ms": 217.8888866697283,
+        "p95_latency_ms": 240.73439999483526
+      },
+      {
+        "semantic_weight": 0.1,
+        "keyword_weight": 0.9,
+        "queries": 30,
+        "recall_at_k": 0.9333333333333333,
+        "mrr": 0.8722222222222222,
+        "mean_relevant_chunks": 0.9333333333333333,
+        "mean_latency_ms": 240.33335666754283,
+        "p95_latency_ms": 367.8473000181839
+      },
+      {
+        "semantic_weight": 0.2,
+        "keyword_weight": 0.8,
+        "queries": 30,
+        "recall_at_k": 0.9333333333333333,
+        "mrr": 0.8722222222222222,
+        "mean_relevant_chunks": 0.9333333333333333,
+        "mean_latency_ms": 327.8247299972766,
+        "p95_latency_ms": 370.0996999978088
+      }
+    ]
+  }
+}

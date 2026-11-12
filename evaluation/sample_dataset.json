@@ -1,56 +1,46 @@
 {
   "documents": [
-    {
-      "source": "employee-handbook.md",
-      "title": "Employee Handbook",
-      "text": "Full-time employees receive 20 days of paid annual leave per calendar year. Leave requests must be submitted in the HR portal and approved by the employee's manager. Unused leave cannot be carried into the next calendar year."
-    },
-    {
-      "source": "remote-work-policy.md",
-      "title": "Remote Work Policy",
-      "text": "Employees may work remotely up to three days per week. Tuesday is the required company-wide office day. Remote work outside the employee's home country requires written approval from People Operations and Information Security."
-    },
-    {
-      "source": "expense-policy.md",
-      "title": "Business Expense Policy",
-      "text": "Meal expenses during approved business travel are reimbursed up to 2500 INR per day. Expense reports and itemized receipts must be submitted within 30 days after travel ends. Director approval is required for airfare upgrades."
-    },
-    {
-      "source": "security-policy.md",
-      "title": "Information Security Policy",
-      "text": "Suspected phishing messages must be reported to security@example.com using the Report Phishing button. Employees must not forward suspicious attachments. Company passwords require at least 14 characters and multi-factor authentication."
-    },
-    {
-      "source": "benefits-guide.md",
-      "title": "Employee Benefits Guide",
-      "text": "The company provides medical insurance for employees, spouses, and up to two dependent children. New dependents must be enrolled within 30 days of a qualifying life event. The annual wellness allowance is 15000 INR."
-    }
+    {"source": "employee-handbook.md", "title": "Employee Handbook", "text": "Full-time employees receive 20 days of paid annual leave per calendar year. Leave requests must be submitted in the HR portal and approved by the employee's manager. Unused leave cannot be carried into the next calendar year. The probation period for new employees is six months. Employees must notify their manager before 9 AM when taking unplanned sick leave."},
+    {"source": "remote-work-policy.md", "title": "Remote Work Policy", "text": "Employees may work remotely up to three days per week. Tuesday is the required company-wide office day. Remote work outside the employee's home country requires written approval from People Operations and Information Security. Employees must use the company VPN when accessing internal systems from public networks."},
+    {"source": "expense-policy.md", "title": "Business Expense Policy", "text": "Meal expenses during approved business travel are reimbursed up to 2500 INR per day. Expense reports and itemized receipts must be submitted within 30 days after travel ends. Director approval is required for airfare upgrades. Personal entertainment and minibar purchases are not reimbursable."},
+    {"source": "security-policy.md", "title": "Information Security Policy", "text": "Suspected phishing messages must be reported to security@example.com using the Report Phishing button. Employees must not forward suspicious attachments. Company passwords require at least 14 characters and multi-factor authentication. Lost company devices must be reported to the security team within one hour."},
+    {"source": "benefits-guide.md", "title": "Employee Benefits Guide", "text": "The company provides medical insurance for employees, spouses, and up to two dependent children. New dependents must be enrolled within 30 days of a qualifying life event. The annual wellness allowance is 15000 INR. Employees may use the wellness allowance for gym memberships, fitness classes, or mental health applications."},
+    {"source": "parental-leave-policy.md", "title": "Parental Leave Policy", "text": "Primary caregivers receive 20 weeks of paid parental leave. Secondary caregivers receive 8 weeks of paid leave. Parental leave may begin up to two weeks before the expected birth or adoption date. Employees should notify People Operations at least 60 days before planned leave when possible."},
+    {"source": "learning-policy.md", "title": "Learning and Development Policy", "text": "Each employee receives an annual learning budget of 40000 INR. The budget may be used for courses, professional certifications, technical books, and conferences. Manager approval is required before purchase. Travel costs for conferences require separate approval and do not come from the learning budget."},
+    {"source": "equipment-policy.md", "title": "Company Equipment Policy", "text": "Employees may replace their company laptop after four years. Standard equipment includes one laptop, one monitor, a keyboard, and a mouse. Equipment remains company property and must be returned within seven days after employment ends. Repairs must be arranged through the IT help desk."},
+    {"source": "code-of-conduct.md", "title": "Code of Conduct", "text": "Employees must disclose actual or potential conflicts of interest to the Legal team. Gifts from vendors valued above 5000 INR require written approval. Harassment or discrimination may be reported confidentially through the ethics hotline. Retaliation against anyone who makes a good-faith report is prohibited."},
+    {"source": "travel-policy.md", "title": "Corporate Travel Policy", "text": "Domestic flights under six hours must be booked in economy class. Hotels are limited to 10000 INR per night unless the destination has an approved exception. Business travel must be booked through the corporate travel portal. Travelers may extend a trip for personal reasons but must pay all additional costs."}
   ],
   "queries": [
-    {
-      "id": "annual-leave-days",
-      "question": "How many annual leave days do full-time employees get?",
-      "expected_sources": ["employee-handbook.md"]
-    },
-    {
-      "id": "mandatory-office-day",
-      "question": "Which day must everyone come to the office?",
-      "expected_sources": ["remote-work-policy.md"]
-    },
-    {
-      "id": "meal-reimbursement",
-      "question": "What is the daily food reimbursement limit while travelling?",
-      "expected_sources": ["expense-policy.md"]
-    },
-    {
-      "id": "phishing-report",
-      "question": "What should I do when I receive a suspicious email?",
-      "expected_sources": ["security-policy.md"]
-    },
-    {
-      "id": "dependent-insurance",
-      "question": "Are an employee's spouse and children covered by health insurance?",
-      "expected_sources": ["benefits-guide.md"]
-    }
+    {"id": "leave-days", "question": "How many vacation days do full-time staff receive?", "expected_sources": ["employee-handbook.md"]},
+    {"id": "leave-carryover", "question": "Can unused annual leave roll over to next year?", "expected_sources": ["employee-handbook.md"]},
+    {"id": "probation", "question": "How long is the new employee probationary period?", "expected_sources": ["employee-handbook.md"]},
+    {"id": "remote-days", "question": "How often can an employee work from home each week?", "expected_sources": ["remote-work-policy.md"]},
+    {"id": "office-day", "question": "Which weekday is mandatory in the office?", "expected_sources": ["remote-work-policy.md"]},
+    {"id": "international-remote", "question": "Whose approval is needed to work remotely from another country?", "expected_sources": ["remote-work-policy.md"]},
+    {"id": "meal-limit", "question": "What is the daily meal reimbursement cap during business travel?", "expected_sources": ["expense-policy.md"]},
+    {"id": "expense-deadline", "question": "When is the deadline for submitting receipts after a trip?", "expected_sources": ["expense-policy.md"]},
+    {"id": "minibar", "question": "Will the company pay for hotel minibar purchases?", "expected_sources": ["expense-policy.md"]},
+    {"id": "phishing", "question": "How do I report a suspicious email?", "expected_sources": ["security-policy.md"]},
+    {"id": "password-length", "question": "What is the minimum company password length?", "expected_sources": ["security-policy.md"]},
+    {"id": "lost-device", "question": "How quickly must a missing work laptop be reported?", "expected_sources": ["security-policy.md"]},
+    {"id": "insurance-family", "question": "Does health coverage include my spouse and children?", "expected_sources": ["benefits-guide.md"]},
+    {"id": "dependent-enrollment", "question": "How soon after a life event must I add a dependent?", "expected_sources": ["benefits-guide.md"]},
+    {"id": "wellness", "question": "What is the yearly allowance for fitness and wellbeing?", "expected_sources": ["benefits-guide.md"]},
+    {"id": "primary-parent", "question": "How much paid leave does a primary caregiver receive?", "expected_sources": ["parental-leave-policy.md"]},
+    {"id": "secondary-parent", "question": "What parental leave is offered to secondary caregivers?", "expected_sources": ["parental-leave-policy.md"]},
+    {"id": "parent-notice", "question": "How far in advance should planned parental leave be reported?", "expected_sources": ["parental-leave-policy.md"]},
+    {"id": "learning-budget", "question": "What is the annual professional development budget?", "expected_sources": ["learning-policy.md"]},
+    {"id": "learning-uses", "question": "Can I use my training allowance for certifications and books?", "expected_sources": ["learning-policy.md"]},
+    {"id": "conference-travel", "question": "Are conference travel costs deducted from the learning budget?", "expected_sources": ["learning-policy.md"]},
+    {"id": "laptop-cycle", "question": "When am I eligible for a replacement work laptop?", "expected_sources": ["equipment-policy.md"]},
+    {"id": "standard-equipment", "question": "What hardware is provided as standard?", "expected_sources": ["equipment-policy.md"]},
+    {"id": "return-equipment", "question": "How many days do departing employees have to return devices?", "expected_sources": ["equipment-policy.md"]},
+    {"id": "conflict", "question": "Where should potential conflicts of interest be disclosed?", "expected_sources": ["code-of-conduct.md"]},
+    {"id": "vendor-gift", "question": "What vendor gift value needs written approval?", "expected_sources": ["code-of-conduct.md"]},
+    {"id": "retaliation", "question": "Is retaliation allowed after a good-faith ethics report?", "expected_sources": ["code-of-conduct.md"]},
+    {"id": "flight-class", "question": "Which cabin class is required for a five-hour domestic flight?", "expected_sources": ["travel-policy.md"]},
+    {"id": "hotel-limit", "question": "What is the normal maximum nightly hotel rate?", "expected_sources": ["travel-policy.md"]},
+    {"id": "personal-extension", "question": "Can I add personal days to a business trip and who pays the extra cost?", "expected_sources": ["travel-policy.md"]}
   ]
 }

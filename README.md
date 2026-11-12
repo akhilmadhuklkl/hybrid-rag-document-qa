@@ -124,8 +124,23 @@ Save a machine-readable result for experiment tracking:
 python -m evaluation.run --top-k 3 --json-output evaluation/results/baseline.json
 ```
 
+Automatically search semantic/BM25 fusion weights in 0.1 increments:
+
+```powershell
+python -m evaluation.run --top-k 3 --tune `
+  --json-output evaluation/results/tuned-baseline.json
+```
+
+Weight selection prioritizes Recall@K, then MRR, then mean latency. The JSON report
+contains the winning configuration and every evaluated weight combination.
+
 Extend `evaluation/sample_dataset.json` with real representative questions and
 their expected sources before tuning chunk sizes, retrieval weights, or reranking.
+
+The included 30-question benchmark selected `0.8` semantic and `0.2` BM25 as the
+default fusion weights. At K=3 this configuration achieved Recall@3 of `1.000` and
+MRR of `0.967`; the complete experiment is stored in
+`evaluation/results/tuned-baseline.json`.
 
 ## Architecture
 

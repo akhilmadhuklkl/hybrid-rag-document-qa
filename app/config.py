@@ -12,8 +12,8 @@ class Settings(BaseSettings):
     collection_name: str = "company_documents"
     chunk_size: int = Field(default=180, ge=20)
     chunk_overlap: int = Field(default=30, ge=0)
-    semantic_weight: float = Field(default=0.6, ge=0)
-    keyword_weight: float = Field(default=0.4, ge=0)
+    semantic_weight: float = Field(default=0.8, ge=0)
+    keyword_weight: float = Field(default=0.2, ge=0)
     rrf_k: int = Field(default=60, ge=1)
     max_upload_mb: int = Field(default=20, ge=1, le=200)
     generator: str = Field(default="extractive", alias="RAG_GENERATOR")

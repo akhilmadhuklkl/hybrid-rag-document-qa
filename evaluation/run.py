@@ -52,6 +52,51 @@ def evaluate(dataset_path: Path, top_k: int) -> dict[str, dict[str, float | int]
     return report
 
 
+def evaluate_hybrid_weights(
+    dataset_path: Path, top_k: int, step: float = 0.1
+) -> list[dict[str, float | int]]:
+    dataset = load_dataset(dataset_path)
+    settings = Settings(collection_name="weight_tuning")
+    store = HybridDocumentStore(settings, client=chromadb.EphemeralClient())
+    store.add([DocumentInput.model_validate(item) for item in dataset["documents"]])
+
+    configurations: list[dict[str, float | int]] = []
+    steps = round(1.0 / step)
+    for index in range(steps + 1):
+        semantic_weight = round(index * step, 6)
+        keyword_weight = round(1.0 - semantic_weight, 6)
+        store.settings.semantic_weight = semantic_weight
+        store.settings.keyword_weight = keyword_weight
+        measurements: list[QueryMeasurement] = []
+        for query in dataset["queries"]:
+            started = time.perf_counter()
+            results = store.search(query["question"], top_k=top_k, mode="hybrid")
+            elapsed_ms = (time.perf_counter() - started) * 1000
+            measurements.append(
+                measure_query(
+                    query_id=query["id"],
+                    results=results,
+                    expected_sources=set(query["expected_sources"]),
+                    latency_ms=elapsed_ms,
+                )
+            )
+        configurations.append(
+            {
+                "semantic_weight": semantic_weight,
+                "keyword_weight": keyword_weight,
+                **summarize(measurements),
+            }
+        )
+    return sorted(
+        configurations,
+        key=lambda item: (
+            -float(item["recall_at_k"]),
+            -float(item["mrr"]),
+            float(item["mean_latency_ms"]),
+        ),
+    )
+
+
 def print_report(report: dict[str, dict[str, float | int]], top_k: int) -> None:
     print(f"Retrieval benchmark (K={top_k})")
     print("mode       recall@k   MRR       mean ms   p95 ms")
@@ -74,12 +119,27 @@ def main() -> None:
     )
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--json-output", type=Path)
+    parser.add_argument(
+        "--tune",
+        action="store_true",
+        help="Search semantic/keyword weights from 0.0 to 1.0",
+    )
     args = parser.parse_args()
     if args.top_k < 1:
         parser.error("--top-k must be at least 1")
 
-    report = evaluate(args.dataset, args.top_k)
+    report: dict[str, Any] = evaluate(args.dataset, args.top_k)
     print_report(report, args.top_k)
+    if args.tune:
+        tuning = evaluate_hybrid_weights(args.dataset, args.top_k)
+        best = tuning[0]
+        report["weight_tuning"] = {"best": best, "all": tuning}
+        print(
+            "\nBest hybrid weights: "
+            f"semantic={best['semantic_weight']:.1f}, "
+            f"keyword={best['keyword_weight']:.1f} "
+            f"(Recall@K={best['recall_at_k']:.3f}, MRR={best['mrr']:.3f})"
+        )
     if args.json_output:
         args.json_output.parent.mkdir(parents=True, exist_ok=True)
         args.json_output.write_text(json.dumps(report, indent=2), encoding="utf-8")
