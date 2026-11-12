@@ -215,8 +215,12 @@ def list_documents(
     request: Request,
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
+    source: str | None = Query(default=None, min_length=1, max_length=200),
 ) -> DocumentListResponse:
     all_documents = request.app.state.store.list_documents(current_user(request))
+    if isinstance(source, str) and source:
+        needle = source.casefold()
+        all_documents = [item for item in all_documents if needle in item.source.casefold()]
     documents = all_documents[offset : offset + limit]
     return DocumentListResponse(
         documents=documents,
