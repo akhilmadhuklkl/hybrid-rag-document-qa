@@ -1,5 +1,7 @@
 # Hybrid RAG Pipeline
 
+![CI](https://github.com/akhilmadhuklkl/hybrid-rag-document-qa/actions/workflows/ci.yml/badge.svg)
+
 A small, production-shaped retrieval-augmented generation service that combines:
 
 - semantic search with ChromaDB embeddings;
