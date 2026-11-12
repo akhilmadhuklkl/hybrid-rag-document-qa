@@ -186,6 +186,13 @@ Copy-Item .env.docker.example .env.docker
 docker compose up --build
 ```
 
+If host port `8000` is reserved, choose another host port:
+
+```powershell
+$env:ATLAS_PORT = "8088"
+docker compose up --build
+```
+
 Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) for the Atlas UI. ChromaDB
 and SQLite data are stored in named Docker volumes so container restarts preserve
 the indexed documents and conversation history. Stop the stack with:
