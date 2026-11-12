@@ -69,6 +69,15 @@ the generated `API_KEY` and persistent disk before creating the service. Set
 `ALLOWED_ORIGINS` to the public API origin you will use. Render uses `/ready` as
 the service health check and mounts persistent storage at `/app`.
 
+After deployment, run the end-to-end smoke test against the public URL:
+
+```powershell
+python scripts/smoke_test.py https://your-service.onrender.com --api-key YOUR_API_KEY
+```
+
+The script checks health, readiness, ingestion, hybrid retrieval, citations, and
+grounding, and exits non-zero if any deployment check fails.
+
 Large uploads use `POST /documents/upload/async` and return a job ID immediately.
 Poll `GET /jobs/{job_id}` for `queued`, `processing`, `completed`, or `failed`
 status. The Atlas UI handles this polling automatically.
