@@ -20,6 +20,21 @@ Docker image keeps this heavyweight dependency disabled.
 Answers are filtered by semantic evidence, require valid inline citations, and fall
 back to extractive output if an LLM returns missing or invalid citation markers.
 
+## Portfolio summary
+
+Atlas is a production-shaped hybrid RAG application for answering questions over
+company documents with traceable evidence. It demonstrates semantic retrieval,
+BM25 keyword search, reciprocal-rank fusion, optional cross-encoder reranking,
+grounded generation, source-linked citations, asynchronous ingestion, user
+isolation, conversation history, observability, security middleware, Docker, and
+CI quality gates.
+
+**Tech:** Python, FastAPI, ChromaDB, BM25, SQLite, Docker, GitHub Actions.
+
+**Highlights:** 43 automated tests, retrieval regression evaluation, configurable
+search modes, citation-linked originals, responsive web UI, and a reusable
+deployment smoke test.
+
 ## Quick start
 
 Python 3.11 or 3.12 is recommended (some dependencies may not yet support Python 3.14).
