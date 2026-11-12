@@ -43,6 +43,24 @@ uploads, a streaming chat experience, evidence-scored citation cards, API health
 document deletion, and recent conversation history without requiring a separate
 frontend build step. Conversations are persisted in SQLite at `atlas.db`.
 
+### Run with Docker Compose
+
+Docker Compose persists ChromaDB and SQLite data in named volumes and publishes
+the API on port `8000` by default. Copy `.env.docker.example` to `.env.docker`,
+then run:
+
+```powershell
+Copy-Item .env.docker.example .env.docker
+docker compose up --build -d
+Invoke-RestMethod http://127.0.0.1:8000/health
+Invoke-RestMethod http://127.0.0.1:8000/ready
+docker compose down
+```
+
+Set `ATLAS_PORT` to use another host port, for example
+`$env:ATLAS_PORT=8019` before starting Compose. The container healthcheck uses
+`/ready`, so it only becomes healthy after both persistence backends initialize.
+
 Large uploads use `POST /documents/upload/async` and return a job ID immediately.
 Poll `GET /jobs/{job_id}` for `queued`, `processing`, `completed`, or `failed`
 status. The Atlas UI handles this polling automatically.
