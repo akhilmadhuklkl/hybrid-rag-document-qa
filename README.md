@@ -34,7 +34,8 @@ Open `http://127.0.0.1:8001/docs` for the interactive API documentation. If port
 
 Open `http://127.0.0.1:8001/` for the Atlas web application. It provides drag-and-drop
 uploads, a streaming chat experience, evidence-scored citation cards, API health,
-and document deletion without requiring a separate frontend build step.
+document deletion, and recent conversation history without requiring a separate
+frontend build step. Conversations are persisted in SQLite at `atlas.db`.
 
 ## Use the API
 

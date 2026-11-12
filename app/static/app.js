@@ -5,6 +5,8 @@ const elements = {
   progress: document.querySelector("#upload-progress"),
   documentList: document.querySelector("#document-list"),
   documentTotal: document.querySelector("#document-total"),
+  conversationTotal: document.querySelector("#conversation-total"),
+  conversationList: document.querySelector("#conversation-list"),
   refresh: document.querySelector("#refresh-documents"),
   status: document.querySelector("#api-status"),
   statusDot: document.querySelector("#status-dot"),
@@ -88,6 +90,41 @@ const loadDocuments = async () => {
   try {
     const response = await api("/documents");
     renderDocuments(await response.json());
+  } catch (error) { showToast(error.message); }
+};
+
+const loadConversations = async () => {
+  try {
+    const response = await api("/conversations");
+    const conversations = await response.json();
+    elements.conversationTotal.textContent = `${conversations.length} conversation${conversations.length === 1 ? "" : "s"}`;
+    elements.conversationList.replaceChildren();
+    conversations.slice(0, 5).forEach((conversation) => {
+      const button = document.createElement("button");
+      button.className = "conversation-item";
+      button.type = "button";
+      button.textContent = conversation.title;
+      button.title = conversation.title;
+      button.addEventListener("click", () => loadConversation(conversation.conversation_id));
+      elements.conversationList.append(button);
+    });
+  } catch (_) { /* history is optional if the database is unavailable */ }
+};
+
+const loadConversation = async (conversationId) => {
+  try {
+    const response = await api(`/conversations/${encodeURIComponent(conversationId)}`);
+    const conversation = await response.json();
+    elements.conversation.replaceChildren();
+    conversation.messages.forEach((message) => {
+      if (message.role === "user") addUserMessage(message.content);
+      else {
+        const assistant = addAssistantMessage();
+        assistant.answer.classList.remove("typing");
+        assistant.answer.textContent = message.content;
+        renderCompletion(assistant.bubble, { ...conversation, ...message, grounded: true, generation_mode: "history", reranked: false });
+      }
+    });
   } catch (error) { showToast(error.message); }
 };
 
@@ -211,6 +248,7 @@ const askQuestion = async (question) => {
         if (event.type === "complete") {
           assistant.answer.classList.remove("typing");
           renderCompletion(assistant.bubble, event.data);
+          loadConversations();
         }
       });
       if (done) break;
@@ -255,3 +293,4 @@ document.querySelectorAll("[data-prompt]").forEach((button) => button.addEventLi
 
 checkHealth();
 loadDocuments();
+loadConversations();

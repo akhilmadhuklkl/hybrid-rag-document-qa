@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
+from app.database import ConversationStore
 from app.generation import ExtractiveGenerator, OpenAIGenerator, has_valid_citations
 from app.models import (
     Citation,
@@ -18,6 +19,8 @@ from app.models import (
     QueryRequest,
     QueryResponse,
     UploadResponse,
+    ConversationSummary,
+    ConversationDetail,
 )
 from app.parsing import parse_document
 from app.reranking import CrossEncoderReranker
@@ -28,6 +31,7 @@ from app.store import HybridDocumentStore
 async def lifespan(app: FastAPI):
     settings = get_settings()
     app.state.store = HybridDocumentStore(settings)
+    app.state.database = ConversationStore(settings.database_path)
     app.state.reranker = (
         CrossEncoderReranker(settings.reranker_model)
         if settings.reranker_enabled
@@ -167,13 +171,30 @@ def build_query_response(payload: QueryRequest, request: Request) -> QueryRespon
         )
         for index, chunk in enumerate(chunks, 1)
     ]
+    conversation_id = request.app.state.database.save_exchange(
+        payload.conversation_id, payload.question, answer, citations
+    )
     return QueryResponse(
         answer=answer,
         citations=citations,
         reranked=reranker is not None,
         grounded=grounded,
         generation_mode=generation_mode,
+        conversation_id=conversation_id,
     )
+
+
+@app.get("/conversations", response_model=list[ConversationSummary])
+def list_conversations(request: Request) -> list[ConversationSummary]:
+    return request.app.state.database.list_conversations()
+
+
+@app.get("/conversations/{conversation_id}", response_model=ConversationDetail)
+def get_conversation(conversation_id: str, request: Request) -> ConversationDetail:
+    conversation = request.app.state.database.get_conversation(conversation_id)
+    if conversation is None:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return conversation
 
 
 @app.post("/query/stream")

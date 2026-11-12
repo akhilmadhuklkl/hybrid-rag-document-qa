@@ -50,6 +50,7 @@ class DeleteDocumentResponse(BaseModel):
 class QueryRequest(BaseModel):
     question: str = Field(min_length=2)
     top_k: int = Field(default=5, ge=1, le=20)
+    conversation_id: str | None = None
 
 
 class Citation(BaseModel):
@@ -70,4 +71,24 @@ class QueryResponse(BaseModel):
     reranked: bool = False
     grounded: bool = True
     generation_mode: str = "extractive"
+    conversation_id: str
+
+
+class ConversationSummary(BaseModel):
+    conversation_id: str
+    title: str
+    created_at: str
+    updated_at: str
+    message_count: int
+
+
+class ConversationMessage(BaseModel):
+    role: str
+    content: str
+    citations: list[Citation] = Field(default_factory=list)
+    created_at: str
+
+
+class ConversationDetail(ConversationSummary):
+    messages: list[ConversationMessage]
 

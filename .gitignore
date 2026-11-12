@@ -4,5 +4,6 @@ __pycache__/
 .venv/
 .env
 chroma_data/
+atlas.db
 uvicorn.*.log
 
