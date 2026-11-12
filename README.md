@@ -298,9 +298,44 @@ is committed at `evaluation/results/reranked-baseline.json`.
 
 ## Architecture
 
+```mermaid
+flowchart LR
+  A[PDF DOCX TXT Markdown] --> B[Parser and chunker]
+  B --> C[(ChromaDB semantic index)]
+  B --> D[(BM25 lexical index)]
+  Q[User question] --> E[Hybrid retrieval and RRF]
+  C --> E
+  D --> E
+  E --> F[Evidence filter and optional reranker]
+  F --> G[Grounded generator]
+  G --> H[Citations and conversation history]
+```
+
 1. Documents are split into overlapping word chunks.
 2. Chunks and metadata are persisted in ChromaDB.
 3. At query time, Chroma produces a semantic ranking and BM25 produces a lexical ranking.
 4. Weighted RRF merges the rankings without requiring their raw scores to share a scale.
 5. The top passages are passed to the selected answer generator and returned as traceable citations.
+
+## Portfolio demo checklist
+
+Load the included sample documents after starting the API:
+
+```powershell
+$demo = Get-Content examples/demo_documents.json -Raw
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8001/documents `
+  -ContentType application/json -Body $demo
+```
+
+Then open `http://127.0.0.1:8001/`, try each search mode, upload a file, and
+verify the citation links. The project is intentionally local-first: Docker,
+ChromaDB, SQLite, and uploaded originals remain on the developer machine unless
+you explicitly configure another environment.
+
+## Release checklist
+
+- Run `pytest -q --basetemp=.pytest-temp` and `node --check app/static/app.js`.
+- Run the Docker Compose health/readiness smoke test.
+- Review the UI at desktop and narrow widths.
+- Keep API keys and uploaded documents out of Git.
 

@@ -1,0 +1,14 @@
+{
+  "documents": [
+    {
+      "source": "employee-handbook.md",
+      "title": "Employee Handbook",
+      "text": "Employees receive 20 days of annual leave. Leave requests require manager approval."
+    },
+    {
+      "source": "it-security.md",
+      "title": "IT Security Guide",
+      "text": "Use multi-factor authentication for company systems and report suspected phishing immediately."
+    }
+  ]
+}
