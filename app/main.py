@@ -16,6 +16,7 @@ from app.models import (
     UploadResponse,
 )
 from app.parsing import parse_document
+from app.reranking import CrossEncoderReranker
 from app.store import HybridDocumentStore
 
 
@@ -23,6 +24,11 @@ from app.store import HybridDocumentStore
 async def lifespan(app: FastAPI):
     settings = get_settings()
     app.state.store = HybridDocumentStore(settings)
+    app.state.reranker = (
+        CrossEncoderReranker(settings.reranker_model)
+        if settings.reranker_enabled
+        else None
+    )
     if settings.generator.lower() == "openai":
         app.state.generator = OpenAIGenerator(settings.openai_model, settings.openai_api_key)
     else:
@@ -109,7 +115,15 @@ def delete_document(document_id: str, request: Request) -> DeleteDocumentRespons
 
 @app.post("/query", response_model=QueryResponse)
 def query(payload: QueryRequest, request: Request) -> QueryResponse:
-    chunks = request.app.state.store.search(payload.question, payload.top_k)
+    reranker = request.app.state.reranker
+    candidate_k = (
+        payload.top_k * get_settings().reranker_candidate_multiplier
+        if reranker
+        else payload.top_k
+    )
+    chunks = request.app.state.store.search(payload.question, candidate_k)
+    if reranker:
+        chunks = reranker.rerank(payload.question, chunks, payload.top_k)
     answer = request.app.state.generator.generate(payload.question, chunks)
     citations = [
         Citation(
@@ -124,5 +138,5 @@ def query(payload: QueryRequest, request: Request) -> QueryResponse:
         )
         for index, chunk in enumerate(chunks, 1)
     ]
-    return QueryResponse(answer=answer, citations=citations)
+    return QueryResponse(answer=answer, citations=citations, reranked=reranker is not None)
 

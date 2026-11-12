@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     semantic_weight: float = Field(default=0.8, ge=0)
     keyword_weight: float = Field(default=0.2, ge=0)
     rrf_k: int = Field(default=60, ge=1)
+    reranker_enabled: bool = False
+    reranker_model: str = "cross-encoder/ms-marco-MiniLM-L6-v2"
+    reranker_candidate_multiplier: int = Field(default=4, ge=2, le=20)
     max_upload_mb: int = Field(default=20, ge=1, le=200)
     generator: str = Field(default="extractive", alias="RAG_GENERATOR")
     openai_model: str = "gpt-4.1-mini"

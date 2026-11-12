@@ -1,0 +1,36 @@
+{
+  "semantic": {
+    "queries": 30,
+    "recall_at_k": 1.0,
+    "mrr": 0.9666666666666667,
+    "mean_relevant_chunks": 1,
+    "mean_latency_ms": 221.9710833315427,
+    "p95_latency_ms": 239.46840001735836
+  },
+  "keyword": {
+    "queries": 30,
+    "recall_at_k": 0.9333333333333333,
+    "mrr": 0.8722222222222222,
+    "mean_relevant_chunks": 0.9333333333333333,
+    "mean_latency_ms": 1.237856672378257,
+    "p95_latency_ms": 1.465699984692037
+  },
+  "hybrid": {
+    "queries": 30,
+    "recall_at_k": 1.0,
+    "mrr": 0.9666666666666667,
+    "mean_relevant_chunks": 1,
+    "mean_latency_ms": 220.74352666386403,
+    "p95_latency_ms": 252.46769998921081
+  },
+  "reranked": {
+    "model": "cross-encoder/ms-marco-MiniLM-L6-v2",
+    "candidate_k": 10,
+    "queries": 30,
+    "recall_at_k": 1.0,
+    "mrr": 0.9833333333333333,
+    "mean_relevant_chunks": 1,
+    "mean_latency_ms": 362.1361099940259,
+    "p95_latency_ms": 374.901500006672
+  }
+}

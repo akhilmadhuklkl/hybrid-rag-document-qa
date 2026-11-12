@@ -142,6 +142,33 @@ default fusion weights. At K=3 this configuration achieved Recall@3 of `1.000` a
 MRR of `0.967`; the complete experiment is stored in
 `evaluation/results/tuned-baseline.json`.
 
+## Optional cross-encoder reranking
+
+The API can retrieve a broader hybrid candidate set and rerank each question and
+passage jointly with `cross-encoder/ms-marco-MiniLM-L6-v2`. This improves precision
+at the cost of model startup time and additional query latency.
+
+```powershell
+$env:RERANKER_ENABLED = "true"
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8001
+```
+
+The first enabled run downloads the model. Query responses expose `reranked: true`,
+and citation scores become cross-encoder relevance scores. Configure the model and
+candidate pool with `RERANKER_MODEL` and `RERANKER_CANDIDATE_MULTIPLIER`.
+
+Benchmark the reranked pipeline against the other retrieval modes:
+
+```powershell
+python -m evaluation.run --top-k 3 --rerank --candidate-k 10 `
+  --json-output evaluation/results/reranked-baseline.json
+```
+
+On the included 30-question dataset, reranking improved MRR from `0.967` to
+`0.983` while preserving Recall@3 of `1.000`. Mean retrieval latency increased
+from about `221 ms` to `362 ms`, so reranking remains opt-in. The measured report
+is committed at `evaluation/results/reranked-baseline.json`.
+
 ## Architecture
 
 1. Documents are split into overlapping word chunks.

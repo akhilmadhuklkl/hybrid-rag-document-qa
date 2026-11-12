@@ -8,6 +8,7 @@ import chromadb
 
 from app.config import Settings
 from app.models import DocumentInput
+from app.reranking import CrossEncoderReranker
 from app.store import HybridDocumentStore
 from evaluation.metrics import QueryMeasurement, measure_query, summarize
 
@@ -97,6 +98,37 @@ def evaluate_hybrid_weights(
     )
 
 
+def evaluate_reranker(
+    dataset_path: Path, top_k: int, candidate_k: int, model_name: str
+) -> dict[str, float | int | str]:
+    dataset = load_dataset(dataset_path)
+    settings = Settings(collection_name="reranker_evaluation")
+    store = HybridDocumentStore(settings, client=chromadb.EphemeralClient())
+    store.add([DocumentInput.model_validate(item) for item in dataset["documents"]])
+    reranker = CrossEncoderReranker(model_name)
+    measurements: list[QueryMeasurement] = []
+    for query in dataset["queries"]:
+        started = time.perf_counter()
+        candidates = store.search(
+            query["question"], top_k=candidate_k, mode="hybrid"
+        )
+        results = reranker.rerank(query["question"], candidates, top_k)
+        elapsed_ms = (time.perf_counter() - started) * 1000
+        measurements.append(
+            measure_query(
+                query_id=query["id"],
+                results=results,
+                expected_sources=set(query["expected_sources"]),
+                latency_ms=elapsed_ms,
+            )
+        )
+    return {
+        "model": model_name,
+        "candidate_k": candidate_k,
+        **summarize(measurements),
+    }
+
+
 def print_report(report: dict[str, dict[str, float | int]], top_k: int) -> None:
     print(f"Retrieval benchmark (K={top_k})")
     print("mode       recall@k   MRR       mean ms   p95 ms")
@@ -117,6 +149,12 @@ def main() -> None:
         default=Path("evaluation/sample_dataset.json"),
         help="Evaluation dataset JSON path",
     )
+    parser.add_argument(
+        "--rerank",
+        action="store_true",
+        help="Benchmark cross-encoder reranking after hybrid retrieval",
+    )
+    parser.add_argument("--candidate-k", type=int, default=20)
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--json-output", type=Path)
     parser.add_argument(
@@ -139,6 +177,21 @@ def main() -> None:
             f"semantic={best['semantic_weight']:.1f}, "
             f"keyword={best['keyword_weight']:.1f} "
             f"(Recall@K={best['recall_at_k']:.3f}, MRR={best['mrr']:.3f})"
+        )
+    if args.rerank:
+        settings = Settings()
+        reranked = evaluate_reranker(
+            args.dataset,
+            args.top_k,
+            args.candidate_k,
+            settings.reranker_model,
+        )
+        report["reranked"] = reranked
+        print(
+            "\nReranked hybrid: "
+            f"Recall@K={reranked['recall_at_k']:.3f}, "
+            f"MRR={reranked['mrr']:.3f}, "
+            f"mean={reranked['mean_latency_ms']:.2f} ms"
         )
     if args.json_output:
         args.json_output.parent.mkdir(parents=True, exist_ok=True)

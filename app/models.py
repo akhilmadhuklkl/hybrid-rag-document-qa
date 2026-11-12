@@ -66,4 +66,5 @@ class Citation(BaseModel):
 class QueryResponse(BaseModel):
     answer: str
     citations: list[Citation]
+    reranked: bool = False
 
