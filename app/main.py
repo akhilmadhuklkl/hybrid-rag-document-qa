@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
+from app.auth import current_user
 from app.database import ConversationStore
 from app.generation import ExtractiveGenerator, OpenAIGenerator, has_valid_citations
 from app.jobs import IngestionJobManager
@@ -72,8 +73,10 @@ def health() -> dict[str, str]:
 
 @app.post("/documents", response_model=IngestResponse, status_code=201)
 def ingest(payload: IngestRequest, request: Request) -> IngestResponse:
+    owner_id = current_user(request)
     try:
-        count = request.app.state.store.add(payload.documents)
+        documents = [document.model_copy(update={"owner_id": owner_id}) for document in payload.documents]
+        count = request.app.state.store.add(documents, owner_id=owner_id)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return IngestResponse(documents_received=len(payload.documents), chunks_added=count)
@@ -84,6 +87,7 @@ async def upload_documents(
     request: Request, files: list[UploadFile] = File(...)
 ) -> UploadResponse:
     settings = get_settings()
+    owner_id = current_user(request)
     max_bytes = settings.max_upload_mb * 1024 * 1024
     units = []
     duplicates: list[str] = []
@@ -97,14 +101,12 @@ async def upload_documents(
                 detail=f"{filename} exceeds the {settings.max_upload_mb} MB limit",
             )
         content_hash = hashlib.sha256(content).hexdigest()
-        if request.app.state.store.has_document(content_hash):
+        if request.app.state.store.has_document(content_hash, owner_id):
             duplicates.append(filename)
             continue
         try:
             parsed = parse_document(filename, content)
-            units.extend(
-                unit.model_copy(update={"content_hash": content_hash}) for unit in parsed
-            )
+            units.extend(unit.model_copy(update={"content_hash": content_hash, "owner_id": owner_id}) for unit in parsed)
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
     chunks_added = request.app.state.store.add(units)
@@ -121,6 +123,7 @@ async def upload_documents_async(
     request: Request, files: list[UploadFile] = File(...)
 ) -> UploadJobResponse:
     settings = get_settings()
+    owner_id = current_user(request)
     max_bytes = settings.max_upload_mb * 1024 * 1024
     units = []
     duplicates: list[str] = []
@@ -131,12 +134,12 @@ async def upload_documents_async(
         if len(content) > max_bytes:
             raise HTTPException(status_code=413, detail=f"{filename} exceeds the {settings.max_upload_mb} MB limit")
         content_hash = hashlib.sha256(content).hexdigest()
-        if request.app.state.store.has_document(content_hash):
+        if request.app.state.store.has_document(content_hash, owner_id):
             duplicates.append(filename)
             continue
         try:
             parsed = parse_document(filename, content)
-            units.extend(unit.model_copy(update={"content_hash": content_hash}) for unit in parsed)
+            units.extend(unit.model_copy(update={"content_hash": content_hash, "owner_id": owner_id}) for unit in parsed)
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
     if not units:
@@ -155,7 +158,7 @@ def get_ingestion_job(job_id: str, request: Request) -> IngestionJob:
 
 @app.get("/documents", response_model=DocumentListResponse)
 def list_documents(request: Request) -> DocumentListResponse:
-    documents = request.app.state.store.list_documents()
+    documents = request.app.state.store.list_documents(current_user(request))
     return DocumentListResponse(
         documents=documents,
         total_documents=len(documents),
@@ -165,7 +168,7 @@ def list_documents(request: Request) -> DocumentListResponse:
 
 @app.delete("/documents/{document_id}", response_model=DeleteDocumentResponse)
 def delete_document(document_id: str, request: Request) -> DeleteDocumentResponse:
-    deleted = request.app.state.store.delete_document(document_id)
+    deleted = request.app.state.store.delete_document(document_id, current_user(request))
     if deleted == 0:
         raise HTTPException(status_code=404, detail="Document not found")
     return DeleteDocumentResponse(document_id=document_id, chunks_deleted=deleted)
@@ -177,13 +180,14 @@ def query(payload: QueryRequest, request: Request) -> QueryResponse:
 
 
 def build_query_response(payload: QueryRequest, request: Request) -> QueryResponse:
+    owner_id = current_user(request)
     reranker = request.app.state.reranker
     candidate_k = (
         payload.top_k * get_settings().reranker_candidate_multiplier
         if reranker
         else payload.top_k
     )
-    chunks = request.app.state.store.search(payload.question, candidate_k)
+    chunks = request.app.state.store.search(payload.question, candidate_k, owner_id=owner_id)
     if reranker:
         chunks = reranker.rerank(payload.question, chunks, payload.top_k)
     chunks = [
@@ -214,7 +218,7 @@ def build_query_response(payload: QueryRequest, request: Request) -> QueryRespon
         for index, chunk in enumerate(chunks, 1)
     ]
     conversation_id = request.app.state.database.save_exchange(
-        payload.conversation_id, payload.question, answer, citations
+        payload.conversation_id, payload.question, answer, citations, owner_id
     )
     return QueryResponse(
         answer=answer,
@@ -228,12 +232,12 @@ def build_query_response(payload: QueryRequest, request: Request) -> QueryRespon
 
 @app.get("/conversations", response_model=list[ConversationSummary])
 def list_conversations(request: Request) -> list[ConversationSummary]:
-    return request.app.state.database.list_conversations()
+    return request.app.state.database.list_conversations(current_user(request))
 
 
 @app.get("/conversations/{conversation_id}", response_model=ConversationDetail)
 def get_conversation(conversation_id: str, request: Request) -> ConversationDetail:
-    conversation = request.app.state.database.get_conversation(conversation_id)
+    conversation = request.app.state.database.get_conversation(conversation_id, current_user(request))
     if conversation is None:
         raise HTTPException(status_code=404, detail="Conversation not found")
     return conversation

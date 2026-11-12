@@ -41,6 +41,13 @@ Large uploads use `POST /documents/upload/async` and return a job ID immediately
 Poll `GET /jobs/{job_id}` for `queued`, `processing`, `completed`, or `failed`
 status. The Atlas UI handles this polling automatically.
 
+## Authentication and isolation
+
+Local demos use `demo-user` by default. For a protected deployment, set
+`AUTH_ENABLED=true` and provide `API_KEY`. Clients send that key as `X-API-Key` and
+identify their isolated workspace with `X-User-ID`. Documents, duplicate checks,
+search results, deletion, and conversation history are scoped to that user.
+
 ## Use the API
 
 Ingest one or more documents:

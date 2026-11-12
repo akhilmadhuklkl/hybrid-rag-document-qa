@@ -23,7 +23,8 @@ class ConversationStore:
                     id TEXT PRIMARY KEY,
                     title TEXT NOT NULL,
                     created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
+                    updated_at TEXT NOT NULL,
+                    owner_id TEXT NOT NULL DEFAULT 'demo-user'
                 );
                 CREATE TABLE IF NOT EXISTS messages (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,6 +48,9 @@ class ConversationStore:
                 );
                 """
             )
+            columns = {row["name"] for row in connection.execute("PRAGMA table_info(conversations)")}
+            if "owner_id" not in columns:
+                connection.execute("ALTER TABLE conversations ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'demo-user'")
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.path)
@@ -60,12 +64,13 @@ class ConversationStore:
         question: str,
         answer: str,
         citations: list[Citation],
+        owner_id: str = "demo-user",
     ) -> str:
         timestamp = now_iso()
         with self._connect() as connection:
             if conversation_id:
                 exists = connection.execute(
-                    "SELECT id FROM conversations WHERE id = ?", (conversation_id,)
+                    "SELECT id FROM conversations WHERE id = ? AND owner_id = ?", (conversation_id, owner_id)
                 ).fetchone()
                 if not exists:
                     conversation_id = None
@@ -73,8 +78,8 @@ class ConversationStore:
                 conversation_id = uuid.uuid4().hex
                 title = " ".join(question.split())[:72] or "New conversation"
                 connection.execute(
-                    "INSERT INTO conversations VALUES (?, ?, ?, ?)",
-                    (conversation_id, title, timestamp, timestamp),
+                    "INSERT INTO conversations(id, title, created_at, updated_at, owner_id) VALUES (?, ?, ?, ?, ?)",
+                    (conversation_id, title, timestamp, timestamp, owner_id),
                 )
             connection.execute(
                 "INSERT INTO messages(conversation_id, role, content, citations, created_at) VALUES (?, 'user', ?, '[]', ?)",
@@ -95,15 +100,15 @@ class ConversationStore:
             )
         return conversation_id
 
-    def list_conversations(self, limit: int = 50) -> list[ConversationSummary]:
+    def list_conversations(self, owner_id: str = "demo-user", limit: int = 50) -> list[ConversationSummary]:
         with self._connect() as connection:
             rows = connection.execute(
                 """
                 SELECT c.*, COUNT(m.id) AS message_count
                 FROM conversations c LEFT JOIN messages m ON m.conversation_id = c.id
-                GROUP BY c.id ORDER BY c.updated_at DESC LIMIT ?
+                WHERE c.owner_id = ? GROUP BY c.id ORDER BY c.updated_at DESC LIMIT ?
                 """,
-                (limit,),
+                (owner_id, limit),
             ).fetchall()
         return [
             ConversationSummary(
@@ -116,11 +121,11 @@ class ConversationStore:
             for row in rows
         ]
 
-    def get_conversation(self, conversation_id: str) -> ConversationDetail | None:
+    def get_conversation(self, conversation_id: str, owner_id: str = "demo-user") -> ConversationDetail | None:
         with self._connect() as connection:
             conversation = connection.execute(
-                "SELECT c.*, COUNT(m.id) AS message_count FROM conversations c LEFT JOIN messages m ON m.conversation_id = c.id WHERE c.id = ? GROUP BY c.id",
-                (conversation_id,),
+                "SELECT c.*, COUNT(m.id) AS message_count FROM conversations c LEFT JOIN messages m ON m.conversation_id = c.id WHERE c.id = ? AND c.owner_id = ? GROUP BY c.id",
+                (conversation_id, owner_id),
             ).fetchone()
             if not conversation:
                 return None

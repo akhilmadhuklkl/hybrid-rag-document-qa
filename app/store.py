@@ -33,7 +33,7 @@ class HybridDocumentStore:
             metadata={"hnsw:space": "cosine"},
         )
 
-    def add(self, documents: list[DocumentInput]) -> int:
+    def add(self, documents: list[DocumentInput], owner_id: str = "demo-user") -> int:
         ids: list[str] = []
         texts: list[str] = []
         metadatas: list[dict[str, Any]] = []
@@ -64,6 +64,7 @@ class HybridDocumentStore:
                         "page": document.page or 0,
                         "section": document.section or "",
                         "document_hash": document_hash,
+                        "owner_id": document.owner_id or owner_id,
                         "ingested_at": ingested_at,
                     }
                 )
@@ -71,14 +72,14 @@ class HybridDocumentStore:
             self.collection.upsert(ids=ids, documents=texts, metadatas=metadatas)
         return len(ids)
 
-    def has_document(self, document_hash: str) -> bool:
+    def has_document(self, document_hash: str, owner_id: str = "demo-user") -> bool:
         result = self.collection.get(
-            where={"document_hash": document_hash}, limit=1, include=[]
+            where={"$and": [{"document_hash": document_hash}, {"owner_id": owner_id}]}, limit=1, include=[]
         )
         return bool(result.get("ids"))
 
-    def list_documents(self) -> list[DocumentSummary]:
-        stored = self.collection.get(include=["metadatas"])
+    def list_documents(self, owner_id: str = "demo-user") -> list[DocumentSummary]:
+        stored = self.collection.get(where={"owner_id": owner_id}, include=["metadatas"])
         ids = stored.get("ids", [])
         metadatas = stored.get("metadatas") or []
         grouped: dict[str, dict[str, Any]] = {}
@@ -118,13 +119,13 @@ class HybridDocumentStore:
             key=lambda item: (item.source.lower(), item.document_id),
         )
 
-    def delete_document(self, document_id: str) -> int:
+    def delete_document(self, document_id: str, owner_id: str = "demo-user") -> int:
         if document_id.startswith("legacy:"):
             source = document_id.removeprefix("legacy:")
-            matched = self.collection.get(where={"source": source}, include=[])
+            matched = self.collection.get(where={"$and": [{"source": source}, {"owner_id": owner_id}]}, include=[])
         else:
             matched = self.collection.get(
-                where={"document_hash": document_id}, include=[]
+                where={"$and": [{"document_hash": document_id}, {"owner_id": owner_id}]}, include=[]
             )
         ids = matched.get("ids", [])
         if ids:
@@ -136,8 +137,10 @@ class HybridDocumentStore:
         question: str,
         top_k: int,
         mode: Literal["semantic", "keyword", "hybrid"] = "hybrid",
+        owner_id: str | None = "demo-user",
     ) -> list[RetrievedChunk]:
-        stored = self.collection.get(include=["documents", "metadatas"])
+        where = {"owner_id": owner_id} if owner_id else None
+        stored = self.collection.get(where=where, include=["documents", "metadatas"])
         all_ids = stored.get("ids", [])
         all_texts = stored.get("documents") or []
         all_metadata = stored.get("metadatas") or []
@@ -153,6 +156,7 @@ class HybridDocumentStore:
                 query_texts=[question],
                 n_results=candidate_count,
                 include=["documents", "distances"],
+                where=where,
             )
             semantic_ids = (semantic.get("ids") or [[]])[0]
             semantic_distances = (semantic.get("distances") or [[]])[0]

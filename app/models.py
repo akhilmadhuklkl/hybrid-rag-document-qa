@@ -8,6 +8,7 @@ class DocumentInput(BaseModel):
     page: int | None = Field(default=None, ge=1)
     section: str | None = None
     content_hash: str | None = Field(default=None, exclude=True)
+    owner_id: str | None = Field(default=None, exclude=True)
 
 
 class IngestRequest(BaseModel):
