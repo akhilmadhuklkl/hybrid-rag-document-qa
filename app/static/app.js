@@ -246,6 +246,11 @@ const renderCompletion = (bubble, metadata) => {
     reranked.textContent = "Reranked";
     meta.append(reranked);
   }
+  if (metadata.latency_ms !== undefined) {
+    const timing = document.createElement("span");
+    timing.textContent = `${metadata.retrieval_mode || "hybrid"} · ${metadata.latency_ms} ms`;
+    meta.append(timing);
+  }
   bubble.append(meta);
 };
 

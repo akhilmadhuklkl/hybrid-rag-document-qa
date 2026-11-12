@@ -90,6 +90,9 @@ class QueryResponse(BaseModel):
     grounded: bool = True
     generation_mode: str = "extractive"
     conversation_id: str
+    retrieval_mode: str = "hybrid"
+    retrieved_chunks: int = 0
+    latency_ms: float = 0.0
 
 
 class ConversationSummary(BaseModel):

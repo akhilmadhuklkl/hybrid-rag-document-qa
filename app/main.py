@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 import hashlib
 import json
 import logging
+from time import perf_counter
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
@@ -236,6 +237,7 @@ def query(payload: QueryRequest, request: Request) -> QueryResponse:
 
 
 def build_query_response(payload: QueryRequest, request: Request) -> QueryResponse:
+    started = perf_counter()
     owner_id = current_user(request)
     reranker = request.app.state.reranker
     candidate_k = (
@@ -284,6 +286,9 @@ def build_query_response(payload: QueryRequest, request: Request) -> QueryRespon
         grounded=grounded,
         generation_mode=generation_mode,
         conversation_id=conversation_id,
+        retrieval_mode="hybrid",
+        retrieved_chunks=len(chunks),
+        latency_ms=round((perf_counter() - started) * 1000, 2),
     )
 
 
