@@ -35,6 +35,9 @@ CI quality gates.
 search modes, citation-linked originals, responsive web UI, and a reusable
 deployment smoke test.
 
+See [PORTFOLIO.md](PORTFOLIO.md) for resume wording, a project description, and
+a short demo-video script.
+
 ## Quick start
 
 Python 3.11 or 3.12 is recommended (some dependencies may not yet support Python 3.14).
