@@ -1,4 +1,6 @@
 import pytest
+from docx import Document
+from io import BytesIO
 
 from app.parsing import UnsupportedDocumentError, parse_document
 
@@ -18,3 +20,26 @@ def test_upload_filename_is_sanitized():
 def test_unsupported_upload_is_rejected():
     with pytest.raises(UnsupportedDocumentError):
         parse_document("malware.exe", b"not really an executable")
+
+
+def test_invalid_text_encoding_is_rejected():
+    with pytest.raises(ValueError, match="UTF-8"):
+        parse_document("broken.txt", b"\xff\xfe")
+
+
+def test_empty_text_is_rejected():
+    with pytest.raises(ValueError, match="no readable text"):
+        parse_document("empty.md", b"  \n")
+
+
+def test_docx_headings_are_preserved_as_sections():
+    document = Document()
+    document.core_properties.title = "Handbook"
+    document.add_heading("Leave", level=1)
+    document.add_paragraph("Employees receive 20 days.")
+    buffer = BytesIO()
+    document.save(buffer)
+    units = parse_document("handbook.docx", buffer.getvalue())
+    assert units[0].title == "Handbook"
+    assert units[0].section == "Leave"
+    assert "20 days" in units[0].text
