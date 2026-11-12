@@ -13,6 +13,10 @@ A small, production-shaped retrieval-augmented generation service that combines:
 
 The service works without an LLM: it returns an extractive answer assembled from the best passages. If `OPENAI_API_KEY` is set, it can instead synthesize an answer with an OpenAI model while being constrained to the retrieved context.
 
+Cross-encoder reranking is optional. Install `requirements-reranker.txt` and set
+`RERANKER_ENABLED=true` when you want the Hugging Face reranker; the default
+Docker image keeps this heavyweight dependency disabled.
+
 Answers are filtered by semantic evidence, require valid inline citations, and fall
 back to extractive output if an LLM returns missing or invalid citation markers.
 

@@ -1,0 +1,3 @@
+# Optional dependencies for Hugging Face cross-encoder reranking.
+torch>=2.15,<3
+transformers>=5.0,<6
