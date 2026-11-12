@@ -21,6 +21,7 @@ class RetrievedChunk:
     page: int | None
     section: str | None
     score: float
+    evidence_score: float = 0.0
 
 
 class HybridDocumentStore:
@@ -145,12 +146,22 @@ class HybridDocumentStore:
 
         candidate_count = min(len(all_ids), max(top_k * 4, top_k))
         semantic_ids: list[str] = []
+        semantic_scores: dict[str, float] = {}
         keyword_ids: list[str] = []
         if mode in {"semantic", "hybrid"}:
             semantic = self.collection.query(
-                query_texts=[question], n_results=candidate_count, include=["documents"]
+                query_texts=[question],
+                n_results=candidate_count,
+                include=["documents", "distances"],
             )
             semantic_ids = (semantic.get("ids") or [[]])[0]
+            semantic_distances = (semantic.get("distances") or [[]])[0]
+            semantic_scores = {
+                item_id: max(0.0, min(1.0, 1.0 - float(distance)))
+                for item_id, distance in zip(
+                    semantic_ids, semantic_distances, strict=True
+                )
+            }
 
         if mode in {"keyword", "hybrid"}:
             # BM25 expects a non-empty average document length. Keep unusual inputs
@@ -195,6 +206,7 @@ class HybridDocumentStore:
                     page=int(metadata.get("page") or 0) or None,
                     section=str(metadata.get("section") or "") or None,
                     score=score,
+                    evidence_score=semantic_scores.get(item_id, 0.0),
                 )
             )
         return results

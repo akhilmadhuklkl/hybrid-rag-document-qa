@@ -61,10 +61,13 @@ class Citation(BaseModel):
     section: str | None = None
     text: str
     score: float
+    evidence_score: float
 
 
 class QueryResponse(BaseModel):
     answer: str
     citations: list[Citation]
     reranked: bool = False
+    grounded: bool = True
+    generation_mode: str = "extractive"
 

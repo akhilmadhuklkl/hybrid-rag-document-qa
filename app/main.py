@@ -1,10 +1,12 @@
 from contextlib import asynccontextmanager
 import hashlib
+import json
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi.responses import StreamingResponse
 
 from app.config import get_settings
-from app.generation import ExtractiveGenerator, OpenAIGenerator
+from app.generation import ExtractiveGenerator, OpenAIGenerator, has_valid_citations
 from app.models import (
     Citation,
     DeleteDocumentResponse,
@@ -115,6 +117,10 @@ def delete_document(document_id: str, request: Request) -> DeleteDocumentRespons
 
 @app.post("/query", response_model=QueryResponse)
 def query(payload: QueryRequest, request: Request) -> QueryResponse:
+    return build_query_response(payload, request)
+
+
+def build_query_response(payload: QueryRequest, request: Request) -> QueryResponse:
     reranker = request.app.state.reranker
     candidate_k = (
         payload.top_k * get_settings().reranker_candidate_multiplier
@@ -124,7 +130,19 @@ def query(payload: QueryRequest, request: Request) -> QueryResponse:
     chunks = request.app.state.store.search(payload.question, candidate_k)
     if reranker:
         chunks = reranker.rerank(payload.question, chunks, payload.top_k)
-    answer = request.app.state.generator.generate(payload.question, chunks)
+    chunks = [
+        chunk
+        for chunk in chunks
+        if chunk.evidence_score >= get_settings().min_evidence_score
+    ][: payload.top_k]
+    generator = request.app.state.generator
+    answer = generator.generate(payload.question, chunks)
+    generation_mode = "openai" if isinstance(generator, OpenAIGenerator) else "extractive"
+    grounded = not chunks or has_valid_citations(answer, len(chunks))
+    if chunks and not grounded:
+        answer = ExtractiveGenerator().generate(payload.question, chunks)
+        generation_mode = "extractive_fallback"
+        grounded = True
     citations = [
         Citation(
             index=index,
@@ -135,8 +153,28 @@ def query(payload: QueryRequest, request: Request) -> QueryResponse:
             section=chunk.section,
             text=chunk.text,
             score=round(chunk.score, 8),
+            evidence_score=round(chunk.evidence_score, 8),
         )
         for index, chunk in enumerate(chunks, 1)
     ]
-    return QueryResponse(answer=answer, citations=citations, reranked=reranker is not None)
+    return QueryResponse(
+        answer=answer,
+        citations=citations,
+        reranked=reranker is not None,
+        grounded=grounded,
+        generation_mode=generation_mode,
+    )
+
+
+@app.post("/query/stream")
+def stream_query(payload: QueryRequest, request: Request) -> StreamingResponse:
+    response = build_query_response(payload, request)
+
+    def events():
+        for word in response.answer.split():
+            yield f"event: token\ndata: {json.dumps({'text': word + ' '})}\n\n"
+        metadata = response.model_dump(exclude={"answer"})
+        yield f"event: complete\ndata: {json.dumps(metadata)}\n\n"
+
+    return StreamingResponse(events(), media_type="text/event-stream")
 

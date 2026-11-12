@@ -17,6 +17,7 @@ def make_chunk(chunk_id: str, text: str) -> RetrievedChunk:
         page=None,
         section=None,
         score=0.01,
+        evidence_score=0.1,
     )
 
 
@@ -29,3 +30,4 @@ def test_cross_encoder_reranks_and_limits_results():
     )
     assert [result.chunk_id for result in results] == ["b"]
     assert results[0].score == 0.9
+    assert 0.7 < results[0].evidence_score < 0.8

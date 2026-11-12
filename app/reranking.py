@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 from dataclasses import replace
+import math
 from typing import Any, Protocol
 
 from app.store import RetrievedChunk
@@ -58,7 +59,11 @@ class CrossEncoderReranker:
         pairs = [(question, chunk.text) for chunk in chunks]
         scores = self.model.predict(pairs, show_progress_bar=False)
         scored = [
-            replace(chunk, score=float(score))
+            replace(
+                chunk,
+                score=float(score),
+                evidence_score=1.0 / (1.0 + math.exp(-float(score))),
+            )
             for chunk, score in zip(chunks, scores, strict=True)
         ]
         return sorted(scored, key=lambda chunk: (-chunk.score, chunk.chunk_id))[:top_k]

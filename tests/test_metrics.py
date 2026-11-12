@@ -11,6 +11,7 @@ def chunk(source: str) -> RetrievedChunk:
         page=None,
         section=None,
         score=1.0,
+        evidence_score=1.0,
     )
 
 

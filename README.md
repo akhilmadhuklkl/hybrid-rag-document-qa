@@ -11,6 +11,9 @@ A small, production-shaped retrieval-augmented generation service that combines:
 
 The service works without an LLM: it returns an extractive answer assembled from the best passages. If `OPENAI_API_KEY` is set, it can instead synthesize an answer with an OpenAI model while being constrained to the retrieved context.
 
+Answers are filtered by semantic evidence, require valid inline citations, and fall
+back to extractive output if an LLM returns missing or invalid citation markers.
+
 ## Quick start
 
 Python 3.11 or 3.12 is recommended (some dependencies may not yet support Python 3.14).
@@ -55,6 +58,22 @@ Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8001/query -ContentType app
 ```
 
 Every answer includes a `citations` array containing the source, title, chunk ID, passage text, and fused relevance score. Inline markers such as `[1]` correspond to that array.
+
+Each citation also includes a normalized `evidence_score`. Passages below
+`MIN_EVIDENCE_SCORE` (default `0.25`) are excluded so unsupported questions return
+an explicit no-evidence response instead of a plausible guess.
+
+### Stream an answer
+
+`POST /query/stream` accepts the same body as `/query` and returns server-sent
+events. `token` events contain answer text and the final `complete` event contains
+citations plus `grounded`, `reranked`, and `generation_mode` metadata.
+
+```powershell
+curl.exe -N -X POST "http://127.0.0.1:8001/query/stream" `
+  -H "Content-Type: application/json" `
+  -d '{"question":"How much annual leave do employees get?","top_k":3}'
+```
 
 ### Upload files directly
 

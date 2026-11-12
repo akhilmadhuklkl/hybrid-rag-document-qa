@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+import re
 from typing import Protocol
 
 from app.store import RetrievedChunk
@@ -42,4 +43,13 @@ class OpenAIGenerator:
             input=f"Question: {question}\n\nPassages:\n{context}",
         )
         return response.output_text
+
+
+CITATION_PATTERN = re.compile(r"\[(\d+)]")
+
+
+def has_valid_citations(answer: str, citation_count: int) -> bool:
+    """Require at least one citation and reject references outside the context."""
+    citations = [int(value) for value in CITATION_PATTERN.findall(answer)]
+    return bool(citations) and all(1 <= value <= citation_count for value in citations)
 
