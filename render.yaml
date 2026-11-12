@@ -15,12 +15,12 @@ services:
       - key: ALLOWED_ORIGINS
         sync: false
       - key: CHROMA_PATH
-        value: /app/chroma_data
+        value: /var/lib/atlas/chroma_data
       - key: DATABASE_PATH
-        value: /app/runtime/atlas.db
+        value: /var/lib/atlas/runtime/atlas.db
       - key: GENERATOR
         value: extractive
     disk:
       name: hybrid-rag-data
-      mountPath: /app
+      mountPath: /var/lib/atlas
       sizeGB: 10
