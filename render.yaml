@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: hybrid-rag-document-qa
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /ready
+    autoDeploy: true
+    envVars:
+      - key: AUTH_ENABLED
+        value: "true"
+      - key: API_KEY
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: CHROMA_PATH
+        value: /app/chroma_data
+      - key: DATABASE_PATH
+        value: /app/runtime/atlas.db
+      - key: GENERATOR
+        value: extractive
+    disk:
+      name: hybrid-rag-data
+      mountPath: /app
+      sizeGB: 10

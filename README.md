@@ -61,6 +61,14 @@ Set `ATLAS_PORT` to use another host port, for example
 `$env:ATLAS_PORT=8019` before starting Compose. The container healthcheck uses
 `/ready`, so it only becomes healthy after both persistence backends initialize.
 
+### Deploy to Render
+
+The repository includes `render.yaml` for a Docker-based Render service. In the
+Render dashboard, choose **New → Blueprint**, connect this repository, and review
+the generated `API_KEY` and persistent disk before creating the service. Set
+`ALLOWED_ORIGINS` to the public API origin you will use. Render uses `/ready` as
+the service health check and mounts persistent storage at `/app`.
+
 Large uploads use `POST /documents/upload/async` and return a job ID immediately.
 Poll `GET /jobs/{job_id}` for `queued`, `processing`, `completed`, or `failed`
 status. The Atlas UI handles this polling automatically.
