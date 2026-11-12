@@ -12,3 +12,4 @@ def test_ui_exposes_retrieval_mode_selector_and_sends_it():
     assert "mode: elements.retrievalMode.value" in javascript
     assert 'elements.form.setAttribute("aria-busy", "true")' in javascript
     assert 'elements.retrievalMode.disabled = true' in javascript
+    assert "retrieved_chunks" in javascript

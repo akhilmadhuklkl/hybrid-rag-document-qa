@@ -10,3 +10,4 @@ def test_ui_exposes_document_source_filter():
     assert 'id="document-filter"' in html
     assert "source=${encodeURIComponent(filter)}" in javascript
     assert "setTimeout(loadDocuments, 250)" in javascript
+    assert "No documents match this source filter." in javascript

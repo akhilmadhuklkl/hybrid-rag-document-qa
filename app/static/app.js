@@ -59,7 +59,9 @@ const renderDocuments = (payload) => {
   if (!payload.documents.length) {
     const empty = document.createElement("div");
     empty.className = "empty-library";
-    empty.textContent = "Your library is empty. Upload a company document to begin asking grounded questions.";
+    empty.textContent = elements.documentFilter.value.trim()
+      ? "No documents match this source filter."
+      : "Your library is empty. Upload a company document to begin asking grounded questions.";
     elements.documentList.append(empty);
     return;
   }
@@ -252,7 +254,7 @@ const renderCompletion = (bubble, metadata) => {
   }
   if (metadata.latency_ms !== undefined) {
     const timing = document.createElement("span");
-    timing.textContent = `${metadata.retrieval_mode || "hybrid"} · ${metadata.latency_ms} ms`;
+    timing.textContent = `${metadata.retrieval_mode || "hybrid"} · ${metadata.retrieved_chunks ?? 0} chunks · ${metadata.latency_ms} ms`;
     meta.append(timing);
   }
   bubble.append(meta);
