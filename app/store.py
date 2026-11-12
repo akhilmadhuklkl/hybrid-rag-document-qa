@@ -22,6 +22,7 @@ class RetrievedChunk:
     section: str | None
     score: float
     evidence_score: float = 0.0
+    document_id: str | None = None
 
 
 class HybridDocumentStore:
@@ -204,6 +205,7 @@ class HybridDocumentStore:
             results.append(
                 RetrievedChunk(
                     chunk_id=item_id,
+                    document_id=str(metadata.get("document_hash") or "") or None,
                     text=text,
                     source=str(metadata.get("source", "unknown")),
                     title=str(metadata.get("title") or "") or None,

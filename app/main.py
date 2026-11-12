@@ -14,6 +14,7 @@ from app.auth import current_user
 from app.database import ConversationStore
 from app.generation import ExtractiveGenerator, OpenAIGenerator, has_valid_citations
 from app.jobs import IngestionJobManager
+from app.files import locate_original, save_original
 from app.observability import JsonFormatter, ObservabilityMiddleware, RequestMetrics
 from app.security import SecurityMiddleware
 from app.models import (
@@ -124,6 +125,7 @@ async def upload_documents(
             duplicates.append(filename)
             continue
         try:
+            save_original(settings.file_storage_path, owner_id, content_hash, filename, content)
             parsed = parse_document(filename, content)
             units.extend(unit.model_copy(update={"content_hash": content_hash, "owner_id": owner_id}) for unit in parsed)
         except ValueError as exc:
@@ -157,6 +159,7 @@ async def upload_documents_async(
             duplicates.append(filename)
             continue
         try:
+            save_original(settings.file_storage_path, owner_id, content_hash, filename, content)
             parsed = parse_document(filename, content)
             units.extend(unit.model_copy(update={"content_hash": content_hash, "owner_id": owner_id}) for unit in parsed)
         except ValueError as exc:
@@ -191,6 +194,14 @@ def delete_document(document_id: str, request: Request) -> DeleteDocumentRespons
     if deleted == 0:
         raise HTTPException(status_code=404, detail="Document not found")
     return DeleteDocumentResponse(document_id=document_id, chunks_deleted=deleted)
+
+
+@app.get("/documents/{document_id}/file", include_in_schema=False)
+def source_file(document_id: str, request: Request) -> FileResponse:
+    path = locate_original(get_settings().file_storage_path, current_user(request), document_id)
+    if path is None:
+        raise HTTPException(status_code=404, detail="Original source file not found")
+    return FileResponse(path)
 
 
 @app.post("/query", response_model=QueryResponse)
@@ -228,6 +239,7 @@ def build_query_response(payload: QueryRequest, request: Request) -> QueryRespon
             chunk_id=chunk.chunk_id,
             source=chunk.source,
             title=chunk.title,
+            document_id=chunk.document_id,
             page=chunk.page,
             section=chunk.section,
             text=chunk.text,

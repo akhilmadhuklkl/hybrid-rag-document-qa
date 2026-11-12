@@ -205,7 +205,10 @@ const renderCompletion = (bubble, metadata) => {
     const index = document.createElement("span");
     index.className = "citation-index";
     index.textContent = citation.index;
-    const title = document.createElement("strong");
+    const title = document.createElement("a");
+    title.href = citation.document_id ? `/documents/${encodeURIComponent(citation.document_id)}/file` : "#";
+    title.target = "_blank";
+    title.rel = "noreferrer";
     title.textContent = `${citation.title || citation.source}${citation.page ? ` · p.${citation.page}` : ""}`;
     const score = document.createElement("span");
     score.className = "evidence";

@@ -73,6 +73,7 @@ class QueryRequest(BaseModel):
 class Citation(BaseModel):
     index: int
     chunk_id: str
+    document_id: str | None = None
     source: str
     title: str | None = None
     page: int | None = None
