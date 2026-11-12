@@ -1,0 +1,18 @@
+services:
+  atlas:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.docker
+    volumes:
+      - atlas_chroma:/app/chroma_data
+      - atlas_runtime:/app/runtime
+    environment:
+      CHROMA_PATH: /app/chroma_data
+      DATABASE_PATH: /app/runtime/atlas.db
+    restart: unless-stopped
+
+volumes:
+  atlas_chroma:
+  atlas_runtime:

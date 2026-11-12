@@ -177,6 +177,26 @@ default fusion weights. At K=3 this configuration achieved Recall@3 of `1.000` a
 MRR of `0.967`; the complete experiment is stored in
 `evaluation/results/tuned-baseline.json`.
 
+## Run with Docker
+
+Copy the Docker environment template and start the complete application:
+
+```powershell
+Copy-Item .env.docker.example .env.docker
+docker compose up --build
+```
+
+Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) for the Atlas UI. ChromaDB
+and SQLite data are stored in named Docker volumes so container restarts preserve
+the indexed documents and conversation history. Stop the stack with:
+
+```powershell
+docker compose down
+```
+
+GitHub Actions runs the test suite, Python compilation, JavaScript syntax checks,
+and a Docker image build for every push and pull request to `main`.
+
 ## Optional cross-encoder reranking
 
 The API can retrieve a broader hybrid candidate set and rerank each question and

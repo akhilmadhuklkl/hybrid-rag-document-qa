@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.git/
+.gitignore
+.env
+.env.docker
+atlas.db
+chroma_data/
+uvicorn.*.log
+evaluation/results/
+tests/
