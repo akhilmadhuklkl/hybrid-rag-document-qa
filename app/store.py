@@ -1,11 +1,13 @@
 from dataclasses import dataclass
+from datetime import UTC, datetime
+import hashlib
 from typing import Any, Literal
 
 import chromadb
 from rank_bm25 import BM25Okapi
 
 from app.config import Settings
-from app.models import DocumentInput
+from app.models import DocumentInput, DocumentSummary
 from app.ranking import reciprocal_rank_fusion
 from app.text import chunk_id, chunk_text, tokenize
 
@@ -34,7 +36,11 @@ class HybridDocumentStore:
         ids: list[str] = []
         texts: list[str] = []
         metadatas: list[dict[str, Any]] = []
+        ingested_at = datetime.now(UTC).isoformat()
         for document in documents:
+            document_hash = document.content_hash or hashlib.sha256(
+                f"{document.source}\0{document.text}".encode()
+            ).hexdigest()
             chunks = chunk_text(
                 document.text, self.settings.chunk_size, self.settings.chunk_overlap
             )
@@ -56,10 +62,72 @@ class HybridDocumentStore:
                         "position": position,
                         "page": document.page or 0,
                         "section": document.section or "",
+                        "document_hash": document_hash,
+                        "ingested_at": ingested_at,
                     }
                 )
         if ids:
             self.collection.upsert(ids=ids, documents=texts, metadatas=metadatas)
+        return len(ids)
+
+    def has_document(self, document_hash: str) -> bool:
+        result = self.collection.get(
+            where={"document_hash": document_hash}, limit=1, include=[]
+        )
+        return bool(result.get("ids"))
+
+    def list_documents(self) -> list[DocumentSummary]:
+        stored = self.collection.get(include=["metadatas"])
+        ids = stored.get("ids", [])
+        metadatas = stored.get("metadatas") or []
+        grouped: dict[str, dict[str, Any]] = {}
+        for chunk_id_value, metadata in zip(ids, metadatas, strict=True):
+            source = str(metadata.get("source", "unknown"))
+            document_id = str(metadata.get("document_hash") or f"legacy:{source}")
+            item = grouped.setdefault(
+                document_id,
+                {
+                    "source": source,
+                    "title": str(metadata.get("title") or "") or None,
+                    "chunk_ids": [],
+                    "pages": set(),
+                    "sections": set(),
+                    "ingested_at": str(metadata.get("ingested_at") or "") or None,
+                },
+            )
+            item["chunk_ids"].append(chunk_id_value)
+            if page := int(metadata.get("page") or 0):
+                item["pages"].add(page)
+            if section := str(metadata.get("section") or ""):
+                item["sections"].add(section)
+
+        return sorted(
+            [
+                DocumentSummary(
+                    document_id=document_id,
+                    source=item["source"],
+                    title=item["title"],
+                    chunk_count=len(item["chunk_ids"]),
+                    page_count=len(item["pages"]),
+                    sections=sorted(item["sections"]),
+                    ingested_at=item["ingested_at"],
+                )
+                for document_id, item in grouped.items()
+            ],
+            key=lambda item: (item.source.lower(), item.document_id),
+        )
+
+    def delete_document(self, document_id: str) -> int:
+        if document_id.startswith("legacy:"):
+            source = document_id.removeprefix("legacy:")
+            matched = self.collection.get(where={"source": source}, include=[])
+        else:
+            matched = self.collection.get(
+                where={"document_hash": document_id}, include=[]
+            )
+        ids = matched.get("ids", [])
+        if ids:
+            self.collection.delete(ids=ids)
         return len(ids)
 
     def search(

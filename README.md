@@ -70,6 +70,28 @@ curl.exe -X POST "http://127.0.0.1:8001/documents/upload" `
 Scanned image-only PDFs need OCR before upload. Each file is limited to 20 MB by
 default; change `MAX_UPLOAD_MB` to adjust the limit.
 
+Uploading identical file contents again is safe: the API detects its SHA-256 hash,
+does not create duplicate chunks, and returns the filename in `duplicates_skipped`.
+
+### Manage indexed documents
+
+List documents and collection totals:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8001/documents
+```
+
+Each item includes a stable `document_id`, source, title, chunk count, page count,
+sections, and ingestion timestamp. Delete a document and all of its chunks using:
+
+```powershell
+Invoke-RestMethod -Method Delete `
+  -Uri "http://127.0.0.1:8001/documents/{document_id}"
+```
+
+Documents indexed before this feature are exposed with a `legacy:` identifier and
+remain manageable through the same endpoint.
+
 ## Optional OpenAI generation
 
 ```powershell

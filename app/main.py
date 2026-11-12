@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import hashlib
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 
@@ -6,6 +7,8 @@ from app.config import get_settings
 from app.generation import ExtractiveGenerator, OpenAIGenerator
 from app.models import (
     Citation,
+    DeleteDocumentResponse,
+    DocumentListResponse,
     IngestRequest,
     IngestResponse,
     QueryRequest,
@@ -56,6 +59,7 @@ async def upload_documents(
     settings = get_settings()
     max_bytes = settings.max_upload_mb * 1024 * 1024
     units = []
+    duplicates: list[str] = []
     for upload in files:
         filename = upload.filename or "unnamed"
         content = await upload.read(max_bytes + 1)
@@ -65,8 +69,15 @@ async def upload_documents(
                 status_code=413,
                 detail=f"{filename} exceeds the {settings.max_upload_mb} MB limit",
             )
+        content_hash = hashlib.sha256(content).hexdigest()
+        if request.app.state.store.has_document(content_hash):
+            duplicates.append(filename)
+            continue
         try:
-            units.extend(parse_document(filename, content))
+            parsed = parse_document(filename, content)
+            units.extend(
+                unit.model_copy(update={"content_hash": content_hash}) for unit in parsed
+            )
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
     chunks_added = request.app.state.store.add(units)
@@ -74,7 +85,26 @@ async def upload_documents(
         files_received=len(files),
         document_units_extracted=len(units),
         chunks_added=chunks_added,
+        duplicates_skipped=duplicates,
     )
+
+
+@app.get("/documents", response_model=DocumentListResponse)
+def list_documents(request: Request) -> DocumentListResponse:
+    documents = request.app.state.store.list_documents()
+    return DocumentListResponse(
+        documents=documents,
+        total_documents=len(documents),
+        total_chunks=sum(document.chunk_count for document in documents),
+    )
+
+
+@app.delete("/documents/{document_id}", response_model=DeleteDocumentResponse)
+def delete_document(document_id: str, request: Request) -> DeleteDocumentResponse:
+    deleted = request.app.state.store.delete_document(document_id)
+    if deleted == 0:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return DeleteDocumentResponse(document_id=document_id, chunks_deleted=deleted)
 
 
 @app.post("/query", response_model=QueryResponse)
