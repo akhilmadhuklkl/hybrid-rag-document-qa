@@ -7,4 +7,6 @@ chroma_data/
 atlas.db
 files/
 uvicorn.*.log
+*.out.log
+*.err.log
 

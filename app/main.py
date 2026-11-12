@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -86,6 +86,28 @@ def web_app() -> FileResponse:
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/ready")
+def readiness(request: Request) -> JSONResponse:
+    """Report whether required persistence backends are reachable."""
+    checks: dict[str, str] = {}
+    try:
+        request.app.state.store.collection.count()
+        checks["vector_store"] = "ok"
+    except Exception:
+        checks["vector_store"] = "error"
+    try:
+        with request.app.state.database._connect() as connection:
+            connection.execute("SELECT 1").fetchone()
+        checks["database"] = "ok"
+    except Exception:
+        checks["database"] = "error"
+    ready = all(value == "ok" for value in checks.values())
+    return JSONResponse(
+        status_code=200 if ready else 503,
+        content={"status": "ready" if ready else "not_ready", "checks": checks},
+    )
 
 
 @app.get("/metrics")
