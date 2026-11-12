@@ -11,4 +11,6 @@ def test_web_app_assets_exist_and_reference_api_routes():
     assert 'id="drop-zone"' in html
     assert '"/query/stream"' in javascript
     assert '"/documents/upload/async"' in javascript
+    assert "conversation_id: activeConversationId" in javascript
+    assert 'id="new-chat"' in html
     assert "deleteDocument" in javascript

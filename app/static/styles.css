@@ -62,6 +62,7 @@ button { color: inherit; }
 .topbar h1 { margin: 5px 0 0; font: 800 clamp(25px,3vw,36px)/1 "Manrope"; letter-spacing: -.04em; }
 .quality-badge { display: flex; align-items: center; gap: 7px; padding: 9px 12px; border: 1px solid #cddbd1; border-radius: 99px; background: #f2f8f3; color: var(--green); font-size: 11px; font-weight: 700; }
 .quality-badge span { width: 17px; height: 17px; display: grid; place-items: center; border-radius: 50%; background: var(--green); color: white; font-size: 10px; }
+.new-chat { margin-left: 8px; color: var(--green); background: white; }
 .conversation { width: min(880px, calc(100% - 48px)); margin: 0 auto; padding: 30px 0; overflow-y: auto; }
 .welcome { min-height: 500px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
 .welcome-orbit { width: 70px; height: 70px; margin-bottom: 25px; display: grid; place-items: center; border: 1px solid #cfdbd2; border-radius: 50%; position: relative; color: var(--green); font-size: 24px; }

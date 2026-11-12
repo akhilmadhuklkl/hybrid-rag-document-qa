@@ -16,7 +16,10 @@ const elements = {
   input: document.querySelector("#question-input"),
   send: document.querySelector("#send-button"),
   toast: document.querySelector("#toast"),
+  newChat: document.querySelector("#new-chat"),
 };
+
+let activeConversationId = null;
 
 const showToast = (message) => {
   elements.toast.textContent = message;
@@ -115,6 +118,7 @@ const loadConversation = async (conversationId) => {
   try {
     const response = await api(`/conversations/${encodeURIComponent(conversationId)}`);
     const conversation = await response.json();
+    activeConversationId = conversation.conversation_id;
     elements.conversation.replaceChildren();
     conversation.messages.forEach((message) => {
       if (message.role === "user") addUserMessage(message.content);
@@ -251,7 +255,7 @@ const askQuestion = async (question) => {
     const response = await api("/query/stream", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, top_k: 5 }),
+      body: JSON.stringify({ question, top_k: 5, conversation_id: activeConversationId }),
     });
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
@@ -266,6 +270,7 @@ const askQuestion = async (question) => {
         if (event.type === "complete") {
           assistant.answer.classList.remove("typing");
           renderCompletion(assistant.bubble, event.data);
+          activeConversationId = event.data.conversation_id;
           loadConversations();
         }
       });
@@ -308,6 +313,7 @@ elements.input.addEventListener("input", () => {
   elements.input.style.height = `${Math.min(elements.input.scrollHeight, 150)}px`;
 });
 document.querySelectorAll("[data-prompt]").forEach((button) => button.addEventListener("click", () => askQuestion(button.dataset.prompt)));
+elements.newChat.addEventListener("click", () => window.location.reload());
 
 checkHealth();
 loadDocuments();
