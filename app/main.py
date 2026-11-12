@@ -1,9 +1,11 @@
 from contextlib import asynccontextmanager
 import hashlib
 import json
+from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
 from app.generation import ExtractiveGenerator, OpenAIGenerator, has_valid_citations
@@ -44,6 +46,14 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+STATIC_DIR = Path(__file__).parent / "static"
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.get("/", include_in_schema=False)
+def web_app() -> FileResponse:
+    return FileResponse(STATIC_DIR / "index.html")
 
 
 @app.get("/health")

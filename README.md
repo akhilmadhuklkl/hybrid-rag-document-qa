@@ -32,6 +32,10 @@ Control blocks the generated `uvicorn.exe` launcher.
 Open `http://127.0.0.1:8001/docs` for the interactive API documentation. If port
 `8001` is unavailable on another machine, select a different unreserved local port.
 
+Open `http://127.0.0.1:8001/` for the Atlas web application. It provides drag-and-drop
+uploads, a streaming chat experience, evidence-scored citation cards, API health,
+and document deletion without requiring a separate frontend build step.
+
 ## Use the API
 
 Ingest one or more documents:

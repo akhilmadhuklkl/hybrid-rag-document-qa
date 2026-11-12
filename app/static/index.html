@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Ask grounded questions across company documents with transparent source citations." />
+    <title>Atlas · Document Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Document library">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">A</div>
+          <div><strong>Atlas</strong><span>Document intelligence</span></div>
+        </div>
+
+        <section class="upload-card" id="drop-zone">
+          <input id="file-input" type="file" multiple accept=".pdf,.docx,.txt,.md,.markdown" hidden />
+          <div class="upload-icon" aria-hidden="true">↥</div>
+          <strong>Bring your knowledge</strong>
+          <p>Drop PDF, DOCX, TXT, or Markdown files here.</p>
+          <button class="button button-secondary" id="browse-button" type="button">Choose files</button>
+          <div class="upload-progress" id="upload-progress" hidden><span></span></div>
+        </section>
+
+        <div class="library-heading">
+          <div><span class="eyebrow">Knowledge base</span><strong id="document-total">0 documents</strong></div>
+          <button class="icon-button" id="refresh-documents" title="Refresh documents" aria-label="Refresh documents">↻</button>
+        </div>
+        <div class="document-list" id="document-list" aria-live="polite"></div>
+
+        <div class="sidebar-footer">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="api-status">Checking API</span>
+          <a href="/docs" target="_blank" rel="noreferrer">API docs ↗</a>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <span class="eyebrow">Hybrid RAG workspace</span>
+            <h1>Ask your documents.</h1>
+          </div>
+          <div class="quality-badge"><span>✓</span> Grounded answers</div>
+        </header>
+
+        <section class="conversation" id="conversation" aria-live="polite">
+          <div class="welcome" id="welcome-state">
+            <div class="welcome-orbit"><span>✦</span></div>
+            <span class="eyebrow">Your company knowledge, connected</span>
+            <h2>Answers you can trust.<br /><em>Sources you can verify.</em></h2>
+            <p>Atlas combines semantic understanding with keyword precision, then shows exactly where every answer came from.</p>
+            <div class="prompt-grid">
+              <button class="prompt-card" data-prompt="Summarize the most important policies in my documents."><span>01</span>Summarize key policies</button>
+              <button class="prompt-card" data-prompt="What benefits are available to employees?"><span>02</span>Explore employee benefits</button>
+              <button class="prompt-card" data-prompt="What actions require manager approval?"><span>03</span>Find approval requirements</button>
+            </div>
+          </div>
+        </section>
+
+        <div class="composer-wrap">
+          <form class="composer" id="query-form">
+            <textarea id="question-input" rows="1" placeholder="Ask a question across your documents…" aria-label="Question" required></textarea>
+            <div class="composer-actions">
+              <span><kbd>Enter</kbd> to send · <kbd>Shift</kbd> + <kbd>Enter</kbd> for a new line</span>
+              <button class="send-button" id="send-button" type="submit" aria-label="Send question">↑</button>
+            </div>
+          </form>
+          <p class="disclaimer">Answers are generated only from indexed evidence. Always verify critical information against the cited source.</p>
+        </div>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>
