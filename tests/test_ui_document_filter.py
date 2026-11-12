@@ -9,3 +9,4 @@ def test_ui_exposes_document_source_filter():
     javascript = (ROOT / "app" / "static" / "app.js").read_text(encoding="utf-8")
     assert 'id="document-filter"' in html
     assert "source=${encodeURIComponent(filter)}" in javascript
+    assert "setTimeout(loadDocuments, 250)" in javascript

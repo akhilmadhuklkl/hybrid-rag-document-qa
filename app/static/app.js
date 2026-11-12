@@ -22,6 +22,7 @@ const elements = {
 };
 
 let activeConversationId = null;
+let documentFilterTimer = null;
 
 const showToast = (message) => {
   elements.toast.textContent = message;
@@ -307,7 +308,10 @@ const askQuestion = async (question) => {
 elements.browse.addEventListener("click", () => elements.fileInput.click());
 elements.fileInput.addEventListener("change", () => uploadFiles(elements.fileInput.files));
 elements.refresh.addEventListener("click", loadDocuments);
-elements.documentFilter.addEventListener("input", loadDocuments);
+elements.documentFilter.addEventListener("input", () => {
+  window.clearTimeout(documentFilterTimer);
+  documentFilterTimer = window.setTimeout(loadDocuments, 250);
+});
 ["dragenter", "dragover"].forEach((eventName) => elements.dropZone.addEventListener(eventName, (event) => {
   event.preventDefault(); elements.dropZone.classList.add("dragging");
 }));
