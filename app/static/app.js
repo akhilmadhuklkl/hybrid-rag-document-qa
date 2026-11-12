@@ -8,6 +8,7 @@ const elements = {
   conversationTotal: document.querySelector("#conversation-total"),
   conversationList: document.querySelector("#conversation-list"),
   refresh: document.querySelector("#refresh-documents"),
+  documentFilter: document.querySelector("#document-filter"),
   status: document.querySelector("#api-status"),
   statusDot: document.querySelector("#status-dot"),
   conversation: document.querySelector("#conversation"),
@@ -92,7 +93,8 @@ const renderDocuments = (payload) => {
 
 const loadDocuments = async () => {
   try {
-    const response = await api("/documents");
+    const filter = elements.documentFilter.value.trim();
+    const response = await api(`/documents${filter ? `?source=${encodeURIComponent(filter)}` : ""}`);
     renderDocuments(await response.json());
   } catch (error) { showToast(error.message); }
 };
@@ -305,6 +307,7 @@ const askQuestion = async (question) => {
 elements.browse.addEventListener("click", () => elements.fileInput.click());
 elements.fileInput.addEventListener("change", () => uploadFiles(elements.fileInput.files));
 elements.refresh.addEventListener("click", loadDocuments);
+elements.documentFilter.addEventListener("input", loadDocuments);
 ["dragenter", "dragover"].forEach((eventName) => elements.dropZone.addEventListener(eventName, (event) => {
   event.preventDefault(); elements.dropZone.classList.add("dragging");
 }));
