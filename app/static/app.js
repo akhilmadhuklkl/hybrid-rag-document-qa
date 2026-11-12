@@ -269,6 +269,10 @@ const askQuestion = async (question) => {
   const assistant = addAssistantMessage();
   elements.send.disabled = true;
   elements.input.disabled = true;
+  elements.retrievalMode.disabled = true;
+  elements.form.setAttribute("aria-busy", "true");
+  elements.send.setAttribute("aria-label", "Generating answer");
+  elements.send.textContent = "…";
   try {
     const response = await api("/query/stream", {
       method: "POST",
@@ -300,6 +304,10 @@ const askQuestion = async (question) => {
   } finally {
     elements.send.disabled = false;
     elements.input.disabled = false;
+    elements.retrievalMode.disabled = false;
+    elements.form.removeAttribute("aria-busy");
+    elements.send.setAttribute("aria-label", "Send question");
+    elements.send.textContent = "↑";
     elements.input.focus();
     elements.conversation.scrollTo({ top: elements.conversation.scrollHeight, behavior: "smooth" });
   }
