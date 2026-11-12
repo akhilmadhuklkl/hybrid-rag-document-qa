@@ -7,6 +7,18 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 
+def parse_content_length(value: str | None) -> int:
+    if not value:
+        return 0
+    try:
+        length = int(value)
+    except ValueError as exc:
+        raise ValueError("Invalid Content-Length header") from exc
+    if length < 0:
+        raise ValueError("Invalid Content-Length header")
+    return length
+
+
 class SecurityMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, limit_per_minute: int, max_request_mb: int):
         super().__init__(app)
@@ -17,7 +29,11 @@ class SecurityMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         content_length = request.headers.get("content-length")
-        if content_length and int(content_length) > self.max_bytes:
+        try:
+            declared_length = parse_content_length(content_length)
+        except ValueError as exc:
+            return JSONResponse(status_code=400, content={"detail": str(exc)})
+        if declared_length > self.max_bytes:
             return JSONResponse(status_code=413, content={"detail": "Request body exceeds configured limit"})
         client = request.client.host if request.client else "unknown"
         now = time.time()
