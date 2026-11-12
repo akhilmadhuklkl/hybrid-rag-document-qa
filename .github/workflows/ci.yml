@@ -26,6 +26,8 @@ jobs:
         run: python -m compileall -q app evaluation tests
       - name: Check frontend JavaScript
         run: node --check app/static/app.js
+      - name: Enforce retrieval quality baseline
+        run: python -m evaluation.regression --report evaluation/results/tuned-baseline.json
 
   docker:
     runs-on: ubuntu-latest

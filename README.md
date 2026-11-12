@@ -204,6 +204,9 @@ docker compose down
 GitHub Actions runs the test suite, Python compilation, JavaScript syntax checks,
 and a Docker image build for every push and pull request to `main`.
 
+CI also enforces the committed retrieval-quality baseline. The current gate requires
+at least `0.95` Recall@K and `0.90` MRR from the tuned hybrid report.
+
 ## Observability
 
 Every API response includes an `X-Request-ID` header. Requests are emitted as
