@@ -1,0 +1,26 @@
+{
+  "semantic": {
+    "queries": 5,
+    "recall_at_k": 1.0,
+    "mrr": 1.0,
+    "mean_relevant_chunks": 1,
+    "mean_latency_ms": 239.22115999739617,
+    "p95_latency_ms": 244.70650003058836
+  },
+  "keyword": {
+    "queries": 5,
+    "recall_at_k": 0.8,
+    "mrr": 0.8,
+    "mean_relevant_chunks": 0.8,
+    "mean_latency_ms": 1.1968599865213037,
+    "p95_latency_ms": 1.3707999605685472
+  },
+  "hybrid": {
+    "queries": 5,
+    "recall_at_k": 1.0,
+    "mrr": 0.9,
+    "mean_relevant_chunks": 1,
+    "mean_latency_ms": 224.9172200099565,
+    "p95_latency_ms": 233.39680000208318
+  }
+}

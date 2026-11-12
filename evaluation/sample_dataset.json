@@ -1,0 +1,56 @@
+{
+  "documents": [
+    {
+      "source": "employee-handbook.md",
+      "title": "Employee Handbook",
+      "text": "Full-time employees receive 20 days of paid annual leave per calendar year. Leave requests must be submitted in the HR portal and approved by the employee's manager. Unused leave cannot be carried into the next calendar year."
+    },
+    {
+      "source": "remote-work-policy.md",
+      "title": "Remote Work Policy",
+      "text": "Employees may work remotely up to three days per week. Tuesday is the required company-wide office day. Remote work outside the employee's home country requires written approval from People Operations and Information Security."
+    },
+    {
+      "source": "expense-policy.md",
+      "title": "Business Expense Policy",
+      "text": "Meal expenses during approved business travel are reimbursed up to 2500 INR per day. Expense reports and itemized receipts must be submitted within 30 days after travel ends. Director approval is required for airfare upgrades."
+    },
+    {
+      "source": "security-policy.md",
+      "title": "Information Security Policy",
+      "text": "Suspected phishing messages must be reported to security@example.com using the Report Phishing button. Employees must not forward suspicious attachments. Company passwords require at least 14 characters and multi-factor authentication."
+    },
+    {
+      "source": "benefits-guide.md",
+      "title": "Employee Benefits Guide",
+      "text": "The company provides medical insurance for employees, spouses, and up to two dependent children. New dependents must be enrolled within 30 days of a qualifying life event. The annual wellness allowance is 15000 INR."
+    }
+  ],
+  "queries": [
+    {
+      "id": "annual-leave-days",
+      "question": "How many annual leave days do full-time employees get?",
+      "expected_sources": ["employee-handbook.md"]
+    },
+    {
+      "id": "mandatory-office-day",
+      "question": "Which day must everyone come to the office?",
+      "expected_sources": ["remote-work-policy.md"]
+    },
+    {
+      "id": "meal-reimbursement",
+      "question": "What is the daily food reimbursement limit while travelling?",
+      "expected_sources": ["expense-policy.md"]
+    },
+    {
+      "id": "phishing-report",
+      "question": "What should I do when I receive a suspicious email?",
+      "expected_sources": ["security-policy.md"]
+    },
+    {
+      "id": "dependent-insurance",
+      "question": "Are an employee's spouse and children covered by health insurance?",
+      "expected_sources": ["benefits-guide.md"]
+    }
+  ]
+}
