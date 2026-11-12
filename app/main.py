@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 import hashlib
 import json
+import logging
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
@@ -12,6 +13,7 @@ from app.auth import current_user
 from app.database import ConversationStore
 from app.generation import ExtractiveGenerator, OpenAIGenerator, has_valid_citations
 from app.jobs import IngestionJobManager
+from app.observability import JsonFormatter, ObservabilityMiddleware, RequestMetrics
 from app.models import (
     Citation,
     DeleteDocumentResponse,
@@ -57,6 +59,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+metrics = RequestMetrics()
+app.add_middleware(ObservabilityMiddleware, metrics=metrics)
+logging_handler = logging.StreamHandler()
+logging_handler.setFormatter(JsonFormatter())
+logging.getLogger("atlas.api").addHandler(logging_handler)
+logging.getLogger("atlas.api").setLevel(logging.INFO)
+
 STATIC_DIR = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
@@ -69,6 +78,11 @@ def web_app() -> FileResponse:
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/metrics")
+def metrics_endpoint() -> dict[str, object]:
+    return metrics.snapshot()
 
 
 @app.post("/documents", response_model=IngestResponse, status_code=201)

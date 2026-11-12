@@ -204,6 +204,14 @@ docker compose down
 GitHub Actions runs the test suite, Python compilation, JavaScript syntax checks,
 and a Docker image build for every push and pull request to `main`.
 
+## Observability
+
+Every API response includes an `X-Request-ID` header. Requests are emitted as
+structured JSON logs with method, route, status, request ID, and duration. The
+lightweight in-process dashboard is available at `GET /metrics` and reports request
+count, error count, average latency, and route totals. Replace it with Prometheus
+or OpenTelemetry exporters when deploying multiple replicas.
+
 ## Optional cross-encoder reranking
 
 The API can retrieve a broader hybrid candidate set and rerank each question and
