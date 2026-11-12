@@ -1,6 +1,7 @@
 import pytest
 from docx import Document
 from io import BytesIO
+from pypdf import PdfWriter
 
 from app.parsing import UnsupportedDocumentError, parse_document
 
@@ -43,3 +44,17 @@ def test_docx_headings_are_preserved_as_sections():
     assert units[0].title == "Handbook"
     assert units[0].section == "Leave"
     assert "20 days" in units[0].text
+
+
+def test_malformed_pdf_is_rejected_with_clear_error():
+    with pytest.raises(ValueError, match="Could not read PDF"):
+        parse_document("broken.pdf", b"not a PDF")
+
+
+def test_scanned_or_empty_pdf_explains_ocr_requirement():
+    buffer = BytesIO()
+    writer = PdfWriter()
+    writer.add_blank_page(width=200, height=200)
+    writer.write(buffer)
+    with pytest.raises(ValueError, match="scanned PDFs require OCR"):
+        parse_document("scan.pdf", buffer.getvalue())
