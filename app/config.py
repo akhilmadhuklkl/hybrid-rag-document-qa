@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     database_path: Path = Path("atlas.db")
     auth_enabled: bool = False
     api_key: str | None = None
+    allowed_origins: str = "http://127.0.0.1:8000,http://localhost:8000"
+    rate_limit_per_minute: int = Field(default=120, ge=1, le=10000)
+    max_request_mb: int = Field(default=25, ge=1, le=200)
     max_upload_mb: int = Field(default=20, ge=1, le=200)
     generator: str = Field(default="extractive", alias="RAG_GENERATOR")
     openai_model: str = "gpt-4.1-mini"

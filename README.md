@@ -212,6 +212,10 @@ lightweight in-process dashboard is available at `GET /metrics` and reports requ
 count, error count, average latency, and route totals. Replace it with Prometheus
 or OpenTelemetry exporters when deploying multiple replicas.
 
+Security defaults include CORS allowlisting, request-size limits, per-client rate
+limiting, and secure response headers. Configure `ALLOWED_ORIGINS`,
+`RATE_LIMIT_PER_MINUTE`, and `MAX_REQUEST_MB` for deployment environments.
+
 ## Optional cross-encoder reranking
 
 The API can retrieve a broader hybrid candidate set and rerank each question and

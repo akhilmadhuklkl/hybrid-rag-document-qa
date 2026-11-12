@@ -7,6 +7,7 @@ from pathlib import Path
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.auth import current_user
@@ -14,6 +15,7 @@ from app.database import ConversationStore
 from app.generation import ExtractiveGenerator, OpenAIGenerator, has_valid_citations
 from app.jobs import IngestionJobManager
 from app.observability import JsonFormatter, ObservabilityMiddleware, RequestMetrics
+from app.security import SecurityMiddleware
 from app.models import (
     Citation,
     DeleteDocumentResponse,
@@ -60,6 +62,9 @@ app = FastAPI(
 )
 
 metrics = RequestMetrics()
+settings = get_settings()
+app.add_middleware(SecurityMiddleware, limit_per_minute=settings.rate_limit_per_minute, max_request_mb=settings.max_request_mb)
+app.add_middleware(CORSMiddleware, allow_origins=[origin.strip() for origin in settings.allowed_origins.split(",") if origin.strip()], allow_credentials=True, allow_methods=["GET", "POST", "DELETE"], allow_headers=["*"])
 app.add_middleware(ObservabilityMiddleware, metrics=metrics)
 logging_handler = logging.StreamHandler()
 logging_handler.setFormatter(JsonFormatter())
