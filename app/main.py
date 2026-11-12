@@ -69,7 +69,13 @@ app = FastAPI(
 metrics = RequestMetrics()
 settings = get_settings()
 app.add_middleware(SecurityMiddleware, limit_per_minute=settings.rate_limit_per_minute, max_request_mb=settings.max_request_mb)
-app.add_middleware(CORSMiddleware, allow_origins=[origin.strip() for origin in settings.allowed_origins.split(",") if origin.strip()], allow_credentials=True, allow_methods=["GET", "POST", "DELETE"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[origin.strip() for origin in settings.allowed_origins.split(",") if origin.strip()],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+)
 app.add_middleware(ObservabilityMiddleware, metrics=metrics)
 logging_handler = logging.StreamHandler()
 logging_handler.setFormatter(JsonFormatter())
