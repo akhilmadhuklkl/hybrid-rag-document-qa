@@ -22,6 +22,7 @@ from app.models import (
     Citation,
     DeleteDocumentResponse,
     DocumentListResponse,
+    DocumentSummary,
     IngestRequest,
     IngestResponse,
     QueryRequest,
@@ -211,6 +212,18 @@ def list_documents(request: Request) -> DocumentListResponse:
         total_documents=len(documents),
         total_chunks=sum(document.chunk_count for document in documents),
     )
+
+
+@app.get("/documents/{document_id}", response_model=DocumentSummary)
+def get_document(document_id: str, request: Request) -> DocumentSummary:
+    owner_id = current_user(request)
+    document = next(
+        (item for item in request.app.state.store.list_documents(owner_id) if item.document_id == document_id),
+        None,
+    )
+    if document is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return document
 
 
 @app.delete("/documents/{document_id}", response_model=DeleteDocumentResponse)
