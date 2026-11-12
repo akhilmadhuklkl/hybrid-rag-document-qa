@@ -41,6 +41,10 @@ button { color: inherit; }
 .document-list { min-height: 0; display: flex; flex: 1; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 3px; }
 .history-heading { margin-top: 2px; }
 .conversation-list { display: flex; flex-direction: column; gap: 4px; max-height: 120px; overflow-y: auto; }
+.conversation-row { display: flex; align-items: center; gap: 3px; }
+.conversation-row .conversation-item { flex: 1; }
+.delete-conversation { opacity: 0; border: 0; background: transparent; color: #9b5a52; cursor: pointer; }
+.conversation-row:hover .delete-conversation { opacity: 1; }
 .conversation-item { overflow: hidden; padding: 8px 9px; border: 0; border-radius: 9px; background: transparent; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: var(--muted); font-size: 11px; }
 .conversation-item:hover { background: rgba(255,255,255,.68); color: var(--green); }
 .document-item { display: grid; grid-template-columns: 36px 1fr 28px; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; transition: .18s ease; }

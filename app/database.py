@@ -147,6 +147,22 @@ class ConversationStore:
             messages=messages,
         )
 
+    def rename_conversation(self, conversation_id: str, title: str, owner_id: str = "demo-user") -> bool:
+        with self._connect() as connection:
+            result = connection.execute(
+                "UPDATE conversations SET title = ?, updated_at = ? WHERE id = ? AND owner_id = ?",
+                (title.strip(), now_iso(), conversation_id, owner_id),
+            )
+        return result.rowcount == 1
+
+    def delete_conversation(self, conversation_id: str, owner_id: str = "demo-user") -> bool:
+        with self._connect() as connection:
+            result = connection.execute(
+                "DELETE FROM conversations WHERE id = ? AND owner_id = ?",
+                (conversation_id, owner_id),
+            )
+        return result.rowcount == 1
+
     def create_job(self, job_id: str, files_received: int, document_units: int) -> IngestionJob:
         timestamp = now_iso()
         with self._connect() as connection:

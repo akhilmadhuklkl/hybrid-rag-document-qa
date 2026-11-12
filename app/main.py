@@ -28,6 +28,8 @@ from app.models import (
     UploadResponse,
     ConversationSummary,
     ConversationDetail,
+    ConversationRenameRequest,
+    ConversationDeleteResponse,
     UploadJobResponse,
     IngestionJob,
 )
@@ -272,6 +274,22 @@ def get_conversation(conversation_id: str, request: Request) -> ConversationDeta
     if conversation is None:
         raise HTTPException(status_code=404, detail="Conversation not found")
     return conversation
+
+
+@app.patch("/conversations/{conversation_id}", response_model=ConversationSummary)
+def rename_conversation(conversation_id: str, payload: ConversationRenameRequest, request: Request) -> ConversationSummary:
+    owner_id = current_user(request)
+    if not request.app.state.database.rename_conversation(conversation_id, payload.title, owner_id):
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    conversations = request.app.state.database.list_conversations(owner_id)
+    return next(item for item in conversations if item.conversation_id == conversation_id)
+
+
+@app.delete("/conversations/{conversation_id}", response_model=ConversationDeleteResponse)
+def delete_conversation(conversation_id: str, request: Request) -> ConversationDeleteResponse:
+    if not request.app.state.database.delete_conversation(conversation_id, current_user(request)):
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return ConversationDeleteResponse(conversation_id=conversation_id, deleted=True)
 
 
 @app.post("/query/stream")

@@ -103,13 +103,22 @@ const loadConversations = async () => {
     elements.conversationTotal.textContent = `${conversations.length} conversation${conversations.length === 1 ? "" : "s"}`;
     elements.conversationList.replaceChildren();
     conversations.slice(0, 5).forEach((conversation) => {
+      const row = document.createElement("div");
+      row.className = "conversation-row";
       const button = document.createElement("button");
       button.className = "conversation-item";
       button.type = "button";
       button.textContent = conversation.title;
       button.title = conversation.title;
       button.addEventListener("click", () => loadConversation(conversation.conversation_id));
-      elements.conversationList.append(button);
+      const remove = document.createElement("button");
+      remove.className = "delete-conversation";
+      remove.type = "button";
+      remove.textContent = "×";
+      remove.title = "Delete conversation";
+      remove.addEventListener("click", async () => { await api(`/conversations/${conversation.conversation_id}`, { method: "DELETE" }); await loadConversations(); });
+      row.append(button, remove);
+      elements.conversationList.append(row);
     });
   } catch (_) { /* history is optional if the database is unavailable */ }
 };

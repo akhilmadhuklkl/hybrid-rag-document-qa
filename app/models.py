@@ -110,3 +110,12 @@ class ConversationMessage(BaseModel):
 class ConversationDetail(ConversationSummary):
     messages: list[ConversationMessage]
 
+
+class ConversationRenameRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=100)
+
+
+class ConversationDeleteResponse(BaseModel):
+    conversation_id: str
+    deleted: bool
+
