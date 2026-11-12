@@ -73,6 +73,10 @@ $body = @{ question = "How much annual leave do employees receive?" } | ConvertT
 Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8001/query -ContentType application/json -Body $body
 ```
 
+Set `mode` to `hybrid` (default), `semantic`, or `keyword` to compare retrieval
+strategies. Responses include the selected mode, retrieved chunk count, and
+query latency.
+
 Every answer includes a `citations` array containing the source, title, chunk ID, passage text, and fused relevance score. Inline markers such as `[1]` correspond to that array.
 
 Each citation also includes a normalized `evidence_score`. Passages below
@@ -115,6 +119,11 @@ List documents and collection totals:
 ```powershell
 Invoke-RestMethod http://127.0.0.1:8001/documents
 ```
+
+Document listing supports pagination and source filtering, for example
+`/documents?source=handbook&limit=20&offset=0`. Use `/ready` for a dependency
+readiness check (ChromaDB and SQLite); `/health` remains a lightweight liveness
+check.
 
 Each item includes a stable `document_id`, source, title, chunk count, page count,
 sections, and ingestion timestamp. Delete a document and all of its chunks using:
