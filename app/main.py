@@ -5,7 +5,7 @@ import logging
 from time import perf_counter
 from pathlib import Path
 
-from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import FastAPI, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -205,12 +205,17 @@ def get_ingestion_job(job_id: str, request: Request) -> IngestionJob:
 
 
 @app.get("/documents", response_model=DocumentListResponse)
-def list_documents(request: Request) -> DocumentListResponse:
-    documents = request.app.state.store.list_documents(current_user(request))
+def list_documents(
+    request: Request,
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+) -> DocumentListResponse:
+    all_documents = request.app.state.store.list_documents(current_user(request))
+    documents = all_documents[offset : offset + limit]
     return DocumentListResponse(
         documents=documents,
-        total_documents=len(documents),
-        total_chunks=sum(document.chunk_count for document in documents),
+        total_documents=len(all_documents),
+        total_chunks=sum(document.chunk_count for document in all_documents),
     )
 
 
